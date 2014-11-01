@@ -5,7 +5,10 @@ Python 3
 """
 
 class Labeler(object):
-    """docstring for Labeler"""
+    """
+    Parent class for labelers with different constraints
+
+    """
     def __init__(self, arg):
         super(Labeler, self).__init__()
         self.arg = arg
@@ -16,7 +19,7 @@ def label(G, constraints):
     Labels a graph, pursuant to constraints
 
     G            - a Graph object to label
-    contstraints - constraints for the labeling
+    constraints - constraints for the labeling
     """
 
 def check_labeling(G, l, constraints):
@@ -25,5 +28,5 @@ def check_labeling(G, l, constraints):
 
     G            - a Graph object to label
     l            - a potential labeling for G
-    contstraints - constraints for the labeling
+    constraints - constraints for the labeling
     """
