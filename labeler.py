@@ -4,6 +4,13 @@ Authors: Mafalda Borges, Josh Langowitz, Raagini Rameshwar
 Python 3
 """
 
+class Labeler(object):
+    """docstring for Labeler"""
+    def __init__(self, arg):
+        super(Labeler, self).__init__()
+        self.arg = arg
+        
+
 def label(G, constraints):
     """
     Labels a graph, pursuant to constraints
