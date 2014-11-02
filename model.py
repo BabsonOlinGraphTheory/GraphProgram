@@ -22,6 +22,9 @@ class Graph:
         new_hex_grid              - 
         new_partite               - 
 
+    ATTRIBUTES:
+        adj                       - adjacency list of vertices
+
     OBJECT METHODS:
         get_adjacency_list        - returns adj list representation of a graph
         as_adjacency_matrix       - returns adj matrix representation of a graph
@@ -45,7 +48,7 @@ class Graph:
         """
         self.adj = adj
 
-    def new_from_adjacency_matrix(self, m):
+    def new_from_adjacency_matrix(cls, m):
         """
         Creates a graph from the given adjacency matrix.
 
@@ -57,7 +60,7 @@ class Graph:
             for j in xrange(len(m[i])):
                 if m[i][j]:
                     adj[i].append(j)
-        self.__init__(adj)
+        cls.__init__(adj)
 
     # OBJECT METHODS
     def get_adjacency_list(self):
@@ -96,10 +99,16 @@ class Labeling:
 
     OBJECT METHODS:
         labels   - getter/setter for labels attribute
+        max      - returns maximum label used
     """
+    # CONSTRUCTORS
     def __init__(self, labels=[]):
+        """
+        Creates a new labeling with labels as its labels
+        """
         self.labels = labels
 
+    # OBJECT METHODS
     def labels(self, labels):
         """
         Sets the labels attribute to labels if it exists, then returns the labels
@@ -107,5 +116,7 @@ class Labeling:
         labels - list of new labelings or none
         """
 
-
-        
+    def max(self):
+        """
+        Returns the maximum label used
+        """
