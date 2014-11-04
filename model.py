@@ -227,11 +227,13 @@ class Labeling:
     CLASS METHODS:
 
     Constructors:
-        __init__ - creates a labeling from a list of labels
+        __init__  - creates a labeling from a list of labels
 
     OBJECT METHODS:
-        labels   - getter/setter for labels attribute
-        max      - returns maximum label used
+        labels    - getter/setter for labels attribute
+        max_label - returns maximum label used
+        holes     - returns values that are holes in the labeling
+        num_holes - returns the number of holes in the labeling
     """
     # CONSTRUCTORS
     def __init__(self, labels=[]):
@@ -247,8 +249,18 @@ class Labeling:
 
         labels - list of new labelings or none
         """
+        if labels:
+            self.labels = labels
+        return self.labels
 
-    def max(self):
+    def max_label(self):
         """
         Returns the maximum label used
         """
+        return max(self.labels())
+
+    def holes(self):
+        """
+        Returns the holes in the labeling
+        """
+        return [i for i in range(self.max_label()) if i not in self.labels()]
