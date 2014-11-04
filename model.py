@@ -148,7 +148,7 @@ class Graph:
                 for k in range(p):
                     for l in range(q):
                         resadj[i*p+k][j*q+l]=adj1[i][j]*adj2[k][l]
-        return Graph(resadj)
+        return type(self).new_from_adjacency_matrix(resadj)
 
     def cartesian_product(self, other):
         """
