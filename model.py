@@ -120,6 +120,23 @@ class Graph:
         """
         pass
 
+    def add_vertex(self):
+        """
+        Adds a new vertex to the graph
+        """
+        adj = self.adjacency_list()
+        adj.append([])
+        self.adjacency_list(adj)
+
+    def add_edge(self, v, w):
+        """
+        Adds a new edge from v to w to the graph
+        """
+        adj = self.adjacency_list()
+        adj[v].append(w)
+        adj[w].append(v)
+        self.adjacency_list(adj)
+
     def is_regular(self):
         """
         Returns True if graph is regular, False otherwise
@@ -165,7 +182,7 @@ class Graph:
     def shortest_path_matrix(self):
         """
         Returns a matrix containing in the (i,j)th entry 
-        the shortest path from vertex i to vertex j.
+        the shortest path from vertex i to vertex j, using a Breadth First Search.
         """
         adj = self.as_adjacency_matrix()
         size = len(verts)
@@ -252,6 +269,14 @@ class Labeling:
         if labels:
             self.labels = labels
         return self.labels
+
+    def set_label(self, v, label):
+        """
+        Sets the label at vertex v to label
+        """
+        labels = self.labels()
+        labels[v] = label
+        self.labels(labels)
 
     def max_label(self):
         """
