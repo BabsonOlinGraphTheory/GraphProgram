@@ -106,19 +106,27 @@ class Graph:
         pass
 
     # OBJECT METHODS
-    def adjacency_list(self, adj):
+    def adjacency_list(self, *adj):
         """
         Returns a representation of the graph as an adjacency list
         """
         if adj:
-            self.adj = adj
+            self.adj = adj[0]
         return self.adj
 
     def as_adjacency_matrix(self):
         """
         Returns a representation of the graph as an adjacency matrix
         """
-        pass
+        adj = self.adjacency_list()
+        mat=[]
+        for verts in adj:
+            row = [0]*len(adj)
+            for vert in verts:
+                row[vert] = 1
+            mat.append(row)
+        return mat
+
 
     def add_vertex(self):
         """
