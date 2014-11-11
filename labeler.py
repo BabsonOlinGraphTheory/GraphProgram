@@ -47,8 +47,7 @@ class LMNLabeler(Labeler):
 
     ATTRIBUTES:
         constraints - tuple containing m and n
-        holes_mode  - enum indicating how to handle holes in labelings
-        label_range - tuple containing min and max label
+        holes_mode  - enum indicating how to handle holes in labelings, can be 'allow', 'none', or 'minimize'
 
     OBJECT METHODS:
 
@@ -61,10 +60,9 @@ class LMNLabeler(Labeler):
         # All the k_labeling and helper stuff?
 
     """
-    def __init__(constraints,holes_mode,label_range):
+    def __init__(self, constraints, holes_mode):
         self.constraints = constraints
         self.holes_mode = holes_mode
-        self.label_range = label_range
 
 # Works with reals.
 # a simple, no frills algorithm for automatically generating a smallest span labelling

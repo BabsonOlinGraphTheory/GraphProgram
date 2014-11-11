@@ -45,3 +45,6 @@ cylinder_2_3 = Graph.new_grid(2,3,"cylindrical")
 print(cylinder_2_3.adjacency_list())
 toroid_3_3 = Graph.new_grid(3,3,"toroidal")
 print(toroid_3_3.adjacency_list())
+
+labeler = LMNLabeler((2,1),"allowed")
+labeler.auto_label(C_5_also,[0,4])
