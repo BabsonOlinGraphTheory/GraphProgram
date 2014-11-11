@@ -49,6 +49,7 @@ class Graph:
         """
         self.adj = adj
 
+    @classmethod
     def new_from_adjacency_matrix(cls, m):
         """
         Creates a graph from the given adjacency matrix.
@@ -56,49 +57,56 @@ class Graph:
         m - adjacency matrix
         """
         adj = []
-        for i in xrange(len(m)):
+        for i in range(len(m)):
             adj.append([])
-            for j in xrange(len(m[i])):
+            for j in range(len(m[i])):
                 if m[i][j]:
                     adj[i].append(j)
-        cls.__init__(adj)
+        return cls(adj)
 
+    @classmethod
     def new_peterson(cls, v, l):
         """
         Creates a peterson graph with v vertices per layer and l layers
         """
         pass
 
+    @classmethod
     def new_cycle(cls, v, l):
         """
         Creates a cycle graph with v vertices per layer and l layers
         """
         pass
 
+    @classmethod
     def new_star(cls, v, skip):
         """
         Creates a star graph with v vertices per cycle and skipping skip vertices for cross connections
         """
         pass
 
+    @classmethod
     def new_grid(cls, r, c, wrap):
         """
         Creates a grid graph with r rows and c columns, with wrapping defined by wrap
         """
         pass
 
+    @classmethod
     def new_triangle_grid(cls, r, c, wrap):
         """
         Creates a triangle grid graph with r rows and c columns, with wrapping defined by wrap
         """
         pass
 
+    @classmethod
     def new_hex_grid(cls, r, c, wrap):
         """
         Creates a hex grid graph with r rows and c columns, with wrapping defined by wrap
         """
         pass
 
+    @classmethod
     def new_partite(cls, sizes):
         """
         Creates a complete partite graph with partition sizes according to sizes

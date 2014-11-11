@@ -16,5 +16,14 @@ C_5 = Graph([
     [2,4],
     [0,3],
 ])
-print(C_5.as_adjacency_matrix())
+# print(C_5.as_adjacency_matrix())
+# print(C_5.adjacency_list())
+C_5_also = Graph.new_from_adjacency_matrix(C_5.as_adjacency_matrix())
+print(C_5_also.adjacency_list())
+C_5.add_vertex()
+C_5.add_edge(0,5)
+C_5.add_edge(1,5)
+C_5.add_edge(2,5)
+C_5.add_edge(3,5)
+C_5.add_edge(4,5)
 print(C_5.adjacency_list())
