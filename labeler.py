@@ -273,8 +273,6 @@ class LMNLabeler(Labeler):
                 print(a*constraints[i]+addthis)
         return myset
 
-            return new_matrix
-
     # Works with reals
     # Takes in an adjacency matrix and a list "A" and "B" of vertices; returns a list of vertices in B that are adjacent to some vertex in A.
     def neighbors(adj,A,B):

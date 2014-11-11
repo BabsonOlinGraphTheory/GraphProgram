@@ -100,7 +100,7 @@ class Graph:
                 connections.extend([vert for vert in [i+j-1, i+j+1] if i<=vert<i+c]) #add horizontal connections
                 connections.extend([vert for vert in [i+j-c, i+j+c] if 0<=vert<r*c]) #add horizontal connections
                 adj.append(connections)
-        if wrap:
+        if wrap == "cylindrical" or wrap == "toroidal":
             if c>2:
                 for i in range(0, r*c, c):
                     j = i+c-1
@@ -119,28 +119,7 @@ class Graph:
         """
         Creates a triangle grid graph with r rows and c columns, with wrapping defined by wrap
         """
-        adj = []
-        # Go through vertices one row at a time, so that moving right increments index by 1
-        # and moving down increments index by c.
-        for i in range(0,r*c,c):
-            for j in range(c):
-                connections = []
-                connections.extend([vert for vert in [i+j-1, i+j+1] if i<=vert<i+c]) #add horizontal connections
-                connections.extend([vert for vert in [i+j-c, i+j+c] if 0<=vert<r*c]) #add horizontal connections
-                adj.append(connections)
-        if wrap:
-            if c>2:
-                for i in range(0, r*c, c):
-                    j = i+c-1
-                    adj[i].append(j)
-                    adj[j].append(i)
-        if wrap == "toroidal":
-            if r>2:
-                for i in range(c):
-                    j = (r-1)*c + i
-                    adj[i].append(j)
-                    adj[j].append(i)
-        return cls(adj)
+        pass
 
     @classmethod
     def new_hex_grid(cls, r, c, wrap):
