@@ -91,14 +91,56 @@ class Graph:
         """
         Creates a grid graph with r rows and c columns, with wrapping defined by wrap
         """
-        pass
+        adj = []
+        # Go through vertices one row at a time, so that moving right increments index by 1
+        # and moving down increments index by c.
+        for i in range(0,r*c,c):
+            for j in range(c):
+                connections = []
+                connections.extend([vert for vert in [i+j-1, i+j+1] if i<=vert<i+c]) #add horizontal connections
+                connections.extend([vert for vert in [i+j-c, i+j+c] if 0<=vert<r*c]) #add horizontal connections
+                adj.append(connections)
+        if wrap:
+            if c>2:
+                for i in range(0, r*c, c):
+                    j = i+c-1
+                    adj[i].append(j)
+                    adj[j].append(i)
+        if wrap == "toroidal":
+            if r>2:
+                for i in range(c):
+                    j = (r-1)*c + i
+                    adj[i].append(j)
+                    adj[j].append(i)
+        return cls(adj)
 
     @classmethod
     def new_triangle_grid(cls, r, c, wrap):
         """
         Creates a triangle grid graph with r rows and c columns, with wrapping defined by wrap
         """
-        pass
+        adj = []
+        # Go through vertices one row at a time, so that moving right increments index by 1
+        # and moving down increments index by c.
+        for i in range(0,r*c,c):
+            for j in range(c):
+                connections = []
+                connections.extend([vert for vert in [i+j-1, i+j+1] if i<=vert<i+c]) #add horizontal connections
+                connections.extend([vert for vert in [i+j-c, i+j+c] if 0<=vert<r*c]) #add horizontal connections
+                adj.append(connections)
+        if wrap:
+            if c>2:
+                for i in range(0, r*c, c):
+                    j = i+c-1
+                    adj[i].append(j)
+                    adj[j].append(i)
+        if wrap == "toroidal":
+            if r>2:
+                for i in range(c):
+                    j = (r-1)*c + i
+                    adj[i].append(j)
+                    adj[j].append(i)
+        return cls(adj)
 
     @classmethod
     def new_hex_grid(cls, r, c, wrap):
@@ -191,7 +233,7 @@ class Graph:
         resadj = strong_product(adj1, adj2)
         return type(self).new_from_adjacency_matrix(resadj)
 
-    def shortest_path_matrix(self):
+    def shortest_path_matrix(self): #This seems to give distances, not actual paths
         """
         Returns a matrix containing in the (i,j)th entry 
         the shortest path from vertex i to vertex j, using a Breadth First Search.
@@ -219,7 +261,7 @@ class Graph:
                 i=i+1
         return adj
 
-    def distance_matrix(self):
+    def distance_matrix(self): #Since spm gives distances not paths, this is probably redundant
         """
         Returns a matrix containing in the (i,j)th entry 
         the distance of the shortest path from vertex i to vertex j.
