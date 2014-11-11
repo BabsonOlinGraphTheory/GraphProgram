@@ -3,7 +3,7 @@ Olin Graph Program Fall 2014
 Authors: Mafalda Borges, Josh Langowitz, Raagini Rameshwar
 Python 3
 """
-from graphmath import matrix_addition, identity
+from graphmath import matrix_addition, identity, cartesian_product, tensor_product, strong_product
 
 class Graph:
     """
@@ -72,11 +72,12 @@ class Graph:
         pass
 
     @classmethod
-    def new_cycle(cls, v, l):
+    def new_cycle(cls, v):
         """
-        Creates a cycle graph with v vertices per layer and l layers
+        Creates a cycle graph with v vertices
         """
-        pass
+        adj = [[(i-1) % v, (i+1) % v] for i in range(v)]
+        return cls(adj)
 
     @classmethod
     def new_star(cls, v, skip):
@@ -169,31 +170,26 @@ class Graph:
         """
         adj1 = self.as_adjacency_matrix()
         adj2 = other.as_adjacency_matrix()
-        m=len(adj1)
-        n=len(adj1[0])
-        p=len(adj2)
-        q=len(adj2[0])
-        resadj=[]
-        for i in range(m*p):
-            resadj.append([None]*(n*q))
-        for i in range(m):
-            for j in range(n):
-                for k in range(p):
-                    for l in range(q):
-                        resadj[i*p+k][j*q+l]=adj1[i][j]*adj2[k][l]
+        resadj = tensor_product(adj1, adj2)
         return type(self).new_from_adjacency_matrix(resadj)
 
     def cartesian_product(self, other):
         """
         Return the graph object representing the cartesian product of graphs self and other
         """
-        pass
+        adj1 = self.as_adjacency_matrix()
+        adj2 = other.as_adjacency_matrix()
+        resadj = cartesian_product(adj1, adj2)
+        return type(self).new_from_adjacency_matrix(resadj)
 
     def strong_product(self,other):
         """
         Return the graph object representing the strong product of graphs self and other
         """
-        return matrix_addition(cartesian_product(self,other),tensor_product(self,other))
+        adj1 = self.as_adjacency_matrix()
+        adj2 = other.as_adjacency_matrix()
+        resadj = strong_product(adj1, adj2)
+        return type(self).new_from_adjacency_matrix(resadj)
 
     def shortest_path_matrix(self):
         """
@@ -201,17 +197,17 @@ class Graph:
         the shortest path from vertex i to vertex j, using a Breadth First Search.
         """
         adj = self.as_adjacency_matrix()
-        size = len(verts)
+        size = len(adj)
         for vert in range(size):
             i = 2
             A = [vert]
             B = list(range(size))
             B.remove(vert)
-            A = neighbors(adj,A,B)
+            A = self.neighbors(A,B)
             for a in A:
                 B.remove(a)
             while B != [] and A != []:
-                A = neighbors(adj,A,B)
+                A = self.neighbors(A,B)
                 for a in A:
                     adj[vert][a] = i
                     adj[a][vert] = i
