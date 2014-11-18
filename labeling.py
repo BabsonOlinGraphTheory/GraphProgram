@@ -24,18 +24,18 @@ class Labeling:
         """
         Creates a new labeling with labels as its labels
         """
-        self.labels = labels
+        self.label_list= labels
 
     # OBJECT METHODS
-    def labels(self, labels):
+    def labels(self, *labels):
         """
         Sets the labels attribute to labels if it exists, then returns the labels
 
         labels - list of new labelings or none
         """
         if labels:
-            self.labels = labels
-        return self.labels
+            self.label_list= labels[0]
+        return self.label_list
 
     def set_label(self, v, label):
         """

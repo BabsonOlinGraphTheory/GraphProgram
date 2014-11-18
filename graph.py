@@ -136,9 +136,15 @@ class Graph:
         pass
 
     # OBJECT METHODS
+    def num_verts(self):
+        """
+        Returns the number of vertices in self
+        """
+        return len(self.adj)
+
     def adjacency_list(self, *adj):
         """
-        Returns a representation of the graph as an adjacency list
+        Getter/Setter for adj atribute
         """
         if adj:
             self.adj = adj[0]
@@ -246,6 +252,7 @@ class Graph:
         the distance of the shortest path from vertex i to vertex j.
         """
         spm = self.shortest_path_matrix()
+        return spm
         return [[len(path) for path in t] for t in spm]
 
     def neighbors(self, A, B):
