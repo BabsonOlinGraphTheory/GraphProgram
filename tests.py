@@ -46,7 +46,7 @@ cylinder_2_3 = Graph.new_grid(2,3,"cylindrical")
 toroid_3_3 = Graph.new_grid(3,3,"toroidal")
 # print(toroid_3_3.adjacency_list())
 
-labeler = LMNLabeler((2,1),"allowed")
+labeler = LPolynomialLabeler((2,1),"allowed")
 C_5_labeling = Labeling([None]*C_5_also.num_verts())
 # print(C_5_labeling.labels())
 C_5_valid_labeling = labeler.complete_labeling(C_5_also, C_5_labeling, 3, 4)

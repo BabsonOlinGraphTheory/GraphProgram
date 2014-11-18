@@ -15,32 +15,27 @@ class Labeler:
     ATTRIBUTES:
 
     OBJECT METHODS:
-        label
-        check_labeling
+        complete_labeling
     """
 
     # OBJECT METHODS:
-    def label(self, G):
+    def complete_labeling(self, g, current_labeling, min_label, max_label):
         """
-        Labels a graph
-
-        G            - a Graph object to label
-        constraints - constraints for the labeling
+        Returns a valid labeling of g, a graph object, 
+        pursuant to the labels already defined in current_labeling, a labeling object.
+        min_label and max_label are the minimum and maximum labels of the graph.
         """
-        raise("Abstract class, don't use this!")
+        if not current_labeling:
+            current_labeling = Labeling([None] * g.num_verts())
+        for val in range(min_label, max_label+1):
+            potential_labeling = self.try_labeling(g.distance_matrix(), deepcopy(current_labeling), val)
+            if potential_labeling:
+                return potential_labeling
+        raise(Exception("We could not find a valid labeling for this graph with your constraints. Check your bounds for min and max labels and/or your current labels."))
 
-    def check_labeling(self, G, L):
-        """
-        Checks to see that l is a correct labeling of G
-
-        G            - a Graph object
-        L            - a Labeling object
-        """
-        raise("Abstract class, don't use this!")
-
-class LMNLabeler(Labeler):
+class LPolynomialLabeler(Labeler):
     """
-    Labeler class for L(m,n) labelings of graphs with and without holes
+    Labeler class for L(x_1, x_2, ..., x_n) labelings of graphs with and without holes
 
     CLASS METHODS:
 
@@ -88,56 +83,49 @@ class LMNLabeler(Labeler):
     # OBJECT METHODS
     def check_labeling(self, dist_mat, l):
         """
-        Checks to see if l, a labeling object, is a valid labeling of g, a graph object.
+        Checks to see if l, a labeling object, is a valid labeling of a graph with distance matrix dist_mat.
         """
-        (m,n) = self.constraints()
+        constraints = self.constraints()
         labels = l.labels()
         num_verts = len(labels)
         for i in range(num_verts - 1):
             for j in range(i+1, num_verts):
                 if labels[i] != None and labels[j] != None:
-                    diff = abs(labels[i] - labels[j])
-                    if dist_mat[i][j] == 2:
-                        if diff < n:
+                    if dist_mat[i][j] > 0 and dist_mat[i][j] <= len(constraints):
+                        diff = abs(labels[i] - labels[j])
+                        if diff < constraints[dist_mat[i][j]-1]:
                             return False
-                    if dist_mat[i][j] == 1:
-                        if diff < m:
-                            return False
+        return True
+
+    def complete_labeling(self, g, current_labeling, min_label, max_label):
+        """
+        Returns a valid labeling of g, a graph object, 
+        pursuant to the labels already defined in current_labeling, a labeling object.
+        min_label and max_label are the minimum and maximum labels of the graph.
+        """
+        if not current_labeling:
+            current_labeling = Labeling([None] * g.num_verts())
+        for val in range(min_label, max_label+1):
+            potential_labeling = self.try_labeling(g.distance_matrix(), deepcopy(current_labeling), val)
+            if potential_labeling:
+                return potential_labeling
+        raise(Exception("We could not find a valid labeling for this graph with your constraints. Check your bounds for min and max labels and/or your current labels."))
         return True
 
     def check_label(self, dist_mat, l, v):
         """
-        Checks to see if vertex v in g is validly labelled in labeling l
+        Checks to see if vertex v in a graph with distance matrix dist_mat is validly labelled in labeling l
         """
-        (m,n) = self.constraints()
+        constraints = self.constraints()
         labels = l.labels()
         num_verts = len(labels)
-        # dist_mat = g.distance_matrix()
         for i in range(num_verts):
             if labels[i] != None and labels[v] != None:
-                diff = abs(labels[i] - labels[v])
-                if dist_mat[i][v] == 2:
-                    if diff < n:
-                        return False
-                if dist_mat[i][v] == 1:
-                    if diff < m:
+                if dist_mat[i][v] > 0 and dist_mat[i][v] <= len(constraints):
+                    diff = abs(labels[i] - labels[v])
+                    if diff < constraints[dist_mat[i][v]-1]:
                         return False
         return True
-
-    def complete_labeling(self, g, current_labeling, min_lambda, max_lambda):
-        """
-        Returns a valid labeling of g, a graph object, 
-        pursuant to the labels already defined in current_labeling, a labeling object.
-        min_lambda and max_lambda are the minimum and maximum lambdas of the graph.
-        """
-        if not current_labeling:
-            current_labeling = Labeling([None] * g.num_verts())
-        for lam in range(min_lambda, max_lambda+1):
-            # print(lam)
-            potential_labeling = self.try_labeling(g.distance_matrix(), deepcopy(current_labeling), lam)
-            if potential_labeling:
-                return potential_labeling
-        raise(Exception("We could not find a valid labeling for this graph with your constraints. Check your bounds for lambda and/or your current labels."))
 
     def try_labeling(self, dist_mat, current_labeling, max_label):
         """
