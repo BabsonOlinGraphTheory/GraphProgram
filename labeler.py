@@ -4,7 +4,7 @@ Authors: Mafalda Borges, Josh Langowitz, Raagini Rameshwar
 Python 3
 """
 from labeling import Labeling
-from copy import deepcopy
+from copy import deepcopy, copy
 
 class Labeler:
     """
@@ -84,10 +84,10 @@ class LMNLabeler(Labeler):
         """
         (m,n) = self.constraints()
         labels = l.labels()
-        num_verts = len(labels)
+        num_verts = g.num_verts()
         dist_mat = g.distance_matrix()
-        for i in range(num_verts):
-            for j in range(i, num_verts):
+        for i in range(num_verts - 1):
+            for j in range(i+1, num_verts):
                 if labels[i] != None and labels[j] != None:
                     diff = abs(labels[i] - labels[j])
                     if dist_mat[i][j] == 2:
@@ -96,6 +96,25 @@ class LMNLabeler(Labeler):
                     if dist_mat[i][j] == 1:
                         if diff < m:
                             return False
+        return True
+
+    def check_label(self, g, dist_mat, l, v):
+        """
+        Checks to see if vertex v in g is validly labelled in labeling l
+        """
+        (m,n) = self.constraints()
+        labels = l.labels()
+        num_verts = g.num_verts()
+        # dist_mat = g.distance_matrix()
+        for i in range(num_verts):
+            if labels[i] != None and labels[v] != None:
+                diff = abs(labels[i] - labels[v])
+                if dist_mat[i][v] == 2:
+                    if diff < n:
+                        return False
+                if dist_mat[i][v] == 1:
+                    if diff < m:
+                        return False
         return True
 
     def complete_labeling(self, g, current_labeling, min_lambda, max_lambda):
@@ -108,27 +127,27 @@ class LMNLabeler(Labeler):
             current_labeling = Labeling([None] * g.num_verts())
         for lam in range(min_lambda, max_lambda+1):
             print(lam)
-            potential_labeling = self.try_labeling(g, deepcopy(current_labeling), lam)
+            potential_labeling = self.try_labeling(g, g.distance_matrix(), deepcopy(current_labeling), lam)
             if potential_labeling:
                 return potential_labeling
         raise(Exception("Something went horribly wrong and we couldn't label this"))
 
-    def try_labeling(self, g, current_labeling, max_label):
+    def try_labeling(self, g, dist_mat, current_labeling, max_label):
         """
         Tries to find a valid labeling of g with the highest label being max_label, given the current labeling.
         """
         potential_labels = range(max_label+1)
         labels = current_labeling.labels()
         try:
-            empty_label = labels.index(None)
-            # print(empty_label)
+            current_label = labels.index(None)
+            # print(current_label)
             for label in potential_labels:
-                labels[empty_label] = label
+                labels[current_label] = label
                 # print(labels)
                 current_labeling = Labeling(labels)
-                if self.check_labeling(g, current_labeling):
+                if self.check_label(g, dist_mat, current_labeling, current_label):
                     # print(current_labeling.labels())
-                    potential_labeling = self.try_labeling(g, Labeling(deepcopy(labels)), max_label)
+                    potential_labeling = self.try_labeling(g, dist_mat, Labeling(copy(labels)), max_label)
                     # print(potential_labeling.labels())
                     if potential_labeling and self.check_labeling(g, potential_labeling):
                         return potential_labeling
