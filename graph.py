@@ -163,6 +163,19 @@ class Graph:
             mat.append(row)
         return mat
 
+    def delete_vertex(self, v):
+        """
+        Deletes the vth vertex in the graph and all incident edges
+        """
+        adj = self.adjacency_list()
+        adj.pop(v)
+        for vert in adj:
+            if v in vert:
+                vert.remove(v)
+            for connection in vert:
+                if connection > v:
+                    vert[vert.index(connection)] -= 1
+        self.adjacency_list(adj)
 
     def add_vertex(self):
         """
