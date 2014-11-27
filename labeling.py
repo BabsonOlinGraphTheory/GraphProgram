@@ -24,7 +24,7 @@ class Labeling:
         """
         Creates a new labeling with labels as its labels
         """
-        self.label_list= labels
+        self.label_list = labels
 
     # OBJECT METHODS
     def labels(self, *labels):
@@ -34,7 +34,7 @@ class Labeling:
         labels - list of new labelings or none
         """
         if labels:
-            self.label_list= labels[0]
+            self.label_list = labels[0]
         return self.label_list
 
     def set_label(self, v, label):
@@ -43,6 +43,22 @@ class Labeling:
         """
         labels = self.labels()
         labels[v] = label
+        self.labels(labels)
+
+    def add_vertex(self):
+        """
+        Appends an empty label to the label list for a new vertex
+        """
+        labels = self.labels()
+        labels.append(None)
+        self.labels(labels)
+
+    def delete_vertex(self, v):
+        """
+        Deletes the vth label from the label list for the deletion of a vertex
+        """
+        labels = self.labels()
+        labels.pop(v)
         self.labels(labels)
 
     def max_label(self):

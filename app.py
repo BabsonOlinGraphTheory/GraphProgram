@@ -4,7 +4,7 @@ from decimal import Decimal, getcontext
 getcontext.prec = 10
 RELATIVE_PREFERENCE_PATH ='preferences.ini'
 
-from copy import copy
+from copy import copy, deepcopy
 import os
 import random
 import time
@@ -13,12 +13,17 @@ import tkinter.messagebox
 import tkinter.simpledialog
 import pickle
 import math
-import generate
-import graphmath
+# import generate
 from copy import deepcopy
 from math import *
 from Gui import *
-from view import *
+
+import graphmath
+from view import Graph, Vertex, Edge
+from graph import Graph as Model
+from labeling import Labeling
+from labeler import LPolynomialLabeler
+
 import tkinter.colorchooser
 try:
     import Image, ImageDraw
