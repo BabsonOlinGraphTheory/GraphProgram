@@ -2,9 +2,11 @@
 Olin Graph Program Fall 2014
 Authors: Mafalda Borges, Josh Langowitz, Raagini Rameshwar
 Python 3
+
+Run test with 'python -m unittest'
 """
 
-# This is rapidly becoming a mess. TODO: Fix the mess, and make tests more meaningful. Maybe pull in a real testing framework?
+# TODO: tests for graph products
 
 from graph import *
 from graphmath import *
@@ -32,12 +34,17 @@ class TestGraphC5(unittest.TestCase):
             [0,0,1,0,1],
             [1,0,0,1,0],
         ]
+        self.spm = [
+            [0,1,2,2,1],
+            [1,0,1,2,2],
+            [2,1,0,1,2],
+            [2,2,1,0,1],
+            [1,2,2,1,0],
+        ]
         self.graph = Graph(self.adj_list)
 
-    def test_adjacency_list_get(self):
+    def test_adjacency_list(self):
         self.assertEqual(self.adj_list, self.graph.adjacency_list())
-    
-    def test_adjacency_list_set(self):
         self.assertEqual(self.adj_list, self.graph.adjacency_list(self.adj_list))
 
     def test_adjacency_matrix(self):
@@ -71,6 +78,24 @@ class TestGraphC5(unittest.TestCase):
             [0,2],
         ]
         self.assertEqual(self.graph.adjacency_list(), self.adj_list)
+
+    def test_num_verts(self):
+        self.assertEqual(self.graph.num_verts(), 5)
+
+    def test_degrees(self):
+        self.assertEqual(self.graph.degrees(), [2] * 5)
+
+    def test_new_from_adjacency_matrix(self):
+        self.assertEqual(Graph.new_from_adjacency_matrix(self.adj_mat).adjacency_list(), self.adj_list)
+
+    def test_shortest_path_matrix(self):
+        self.assertEqual(self.graph.shortest_path_matrix(), self.spm)
+
+class TestLPolynomialLabeler(unittest.TestCase):
+    """
+    Tests for LPolynomialLabeler
+    """
+    pass #TODO: write these
 
 
 # C_5 = Graph([
