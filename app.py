@@ -6,6 +6,7 @@ RELATIVE_PREFERENCE_PATH ='preferences.ini'
 
 from copy import copy, deepcopy
 import os
+import sys
 import random
 import time
 import tkinter.filedialog
@@ -1104,9 +1105,12 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         self.box = False
         self.redraw()        
         
-    def connect(self, event=None):
+    def connect(self, event=None, vs=None, props=None):
         self.registerwithundo()
-        self.graph.connect()
+        if not vs:
+            vs = [v for v in self.graph.get_vertices() if v.selected]
+        self.graph.connect(vs, props)
+        self.model.connect([self.get_vertex_index(v) for v in vs])
         self.redraw()
         
     def copy(self, event=None, delete=False):
@@ -1420,12 +1424,15 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         print("\nautolabel\n")
         verts = self.graph.get_vertices()
         print("graphgui labels: ", [vert.label for vert in verts])
+        print("current labeling: ", self.labeling.labels())
+        print("current model: ", self.model.adjacency_list())
         edges = self.graph.edges
         constraints = self.graph.labelingConstraints
         labels=[]
         #print "autolabel"
         if type(constraints)==type([]):
-            labels = graphmath.auto_label(verts, edges, constraints, minlambda, self.holes_mode.get())
+            # labels = graphmath.auto_label(verts, edges, constraints, minlambda, self.holes_mode.get())
+            labels = self.labeler.complete_labeling(self.model, self.labeling, minlambda, sys.maxsize).labels()
             print("graphgui got labels: ", labels)
         else:
             if self.kpath:
@@ -1453,9 +1460,9 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
             return
         for i in range(len(verts)):
             verts[i].label = labels[i]
-        (lmin,lmax,complete)=graphmath.labeling_difference(verts)
+        # (lmin,lmax,complete)=graphmath.labeling_difference(verts)
         self.redraw()
-        lnum = lmax - lmin
+        # lnum = lmax - lmin
         if (not quiet):
             self.control_up()
             if type(self.graph.labelingConstraints)==type([]):
@@ -1466,7 +1473,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
                     s='The graph is NOT completely covered.'
                 tkinter.messagebox.showinfo("Conversion Time", "The conversion time for this coloring is " + str(lnum) + ".\n  Largest time: " + str(lmax) + "\n Smallest time: " + str(lmin)+"\n"+s)
         #print "\nautolabel done.\n"
-        return lnum
+        # return lnum
 
     def check_labeling(self,quiet = False):
         #print "check labeling"
@@ -1707,7 +1714,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
                 # v = Vertex((x, y))
                 # self.add_vertex(v)
             # if self.graph.lastvertex != None:
-                # self.graph.connect((v, self.graph.lastvertex))
+                # self.connect((v, self.graph.lastvertex))
             # self.graph.lastvertex = v
             # self.redraw()
 
@@ -1900,7 +1907,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
             if len(e) < 3:
             # In case we insert a graph with edge curviness/wrapped-ness undefined
                 e = (e[0], e[1], None)
-            self.graph.connect((vertdict[e[0]],vertdict[e[1]]),e[2])
+            self.connect(vs = (vertdict[e[0]],vertdict[e[1]]), props = e[2])
         for v in list(vertdict.values()):
             v.toggle()
         for e in self.graph.edges:
@@ -1954,7 +1961,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
             if self.snap_mode.get() != 'none':
                 self.snap(event, v2)
             self.add_vertex(v2)
-        self.graph.connect(vs = (v1,v2))        
+        self.connect(vs = (v1,v2))        
 
 # #####################################################################################################
 # Other Functions
@@ -2459,7 +2466,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         """
         Returns the index of vert in the view's vertex list
         """
-        return self.graph.edges.index(vert)
+        return self.graph.get_vertices().index(vert)
 
 def main(update = False):
     warnings.filterwarnings("ignore")

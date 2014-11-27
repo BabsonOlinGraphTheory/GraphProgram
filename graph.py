@@ -194,6 +194,17 @@ class Graph:
         adj[w].append(v)
         self.adjacency_list(adj)
 
+    def connect(self, vs):
+        """
+        Adds edges between each pair of vertices in vs
+        """
+        adj = self.adjacency_list()
+        for v1 in vs:
+            for v2 in vs:
+                if v1 != v2:
+                    adj[v1].append(v2)
+                    adj[v2].append(v1)
+
     def is_regular(self):
         """
         Returns True if graph is regular, False otherwise

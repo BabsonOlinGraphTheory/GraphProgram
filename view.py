@@ -605,11 +605,8 @@ class Graph:
         draw=self.draw_to_file(draw,width,height)
         image1.save('boo.png')
         
-    def connect(self, vs=None, props=None):
+    def connect(self, vs, props=None):
         # Connects vertices in list 'vs'; if none given, connects all selected vertices.
-        if not vs:
-            vs = [v for v in self.get_vertices() if v.selected]
-
         for v1 in vs:
             for v2 in vs:
                 if v1!=v2:
