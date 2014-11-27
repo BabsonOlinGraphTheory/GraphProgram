@@ -53,7 +53,12 @@ class FakeEvent():
 class GraphInterface(Gui):
     def __init__(self):
         Gui.__init__(self)
+
         self.graph = Graph()
+        self.model = Model()
+        self.labeler = LPolynomialLabeler()
+        self.labeling = Labeling()
+
         self.ca_width = 600
         self.ca_height = 600
         self.rectangle = ['','']
@@ -759,10 +764,10 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
                     y=row*h+h/2+spacing*(row+1)-canvas_height/2
                     vert.x+=x
                     vert.y+=y
-                    self.graph.add_vertex(vert)
+                    self.add_vertex(vert)
                     i+=1
                 for edge in g.edges:
-                    self.graph.edges.append(edge)
+                    self.add_edge(edge)
                 graphcounter+=1
                 if graphcounter%(rows*cols)==0:
                     self.saveas(fileName=file.name[:-4]+'-'+str(graphcounter/(rows*cols))+'.png')
@@ -1218,8 +1223,8 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
                             found = 1
                             break
                     if not found:
-                        comp.edges.append(Edge(v1,v2))
-                        self.graph.edges.append(Edge(v1,v2))
+                        comp.add_edge(Edge(v1,v2))
+                        self.add_edge(Edge(v1,v2))
         self.graph = comp
         self.redraw()
 
@@ -1236,7 +1241,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
                 e2 = self.graph.edges[j]
                 if e1 != e2:
                     if (e1.vs[0] in e2.vs) or (e1.vs[1] in e2.vs):
-                        lg.edges.append(Edge(lgverts[i],lgverts[j]))
+                        lg.add_edge(Edge(lgverts[i],lgverts[j]))
             i = i + 1
         self.graph = lg
         self.redraw()
@@ -1536,7 +1541,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         if len(changelist)!=0:
             self.registerwithundo()
             for vertnum1, vertnum2 in changelist:
-                self.graph.edges.append(Edge(verts[vertnum1], verts[vertnum2]))
+                self.add_edge(Edge(verts[vertnum1], verts[vertnum2]))
             return False
         else:
             return True
@@ -1700,7 +1705,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
                     # break
             # if v == None:
                 # v = Vertex((x, y))
-                # self.graph.add_vertex(v)
+                # self.add_vertex(v)
             # if self.graph.lastvertex != None:
                 # self.graph.connect((v, self.graph.lastvertex))
             # self.graph.lastvertex = v
@@ -1845,7 +1850,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
                 newVertex = Vertex((x, y))
                 if self.snap_mode.get() != 'none':
                     self.snap( event, newVertex )
-                self.graph.add_vertex( newVertex )
+                self.add_vertex( newVertex )
         self.redraw()
         
     def change_cursor(self, event=None):
@@ -1890,7 +1895,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
             if len(v) < 3:
                 v = (v[0], v[1], "NULL")
             vertdict[(v[0],v[1])] = Vertex((x+v[0]-avgx,y+v[1]-avgy),v[2])
-            self.graph.add_vertex( vertdict[(v[0],v[1])] )
+            self.add_vertex( vertdict[(v[0],v[1])] )
         for e in self.copied_edges:
             if len(e) < 3:
             # In case we insert a graph with edge curviness/wrapped-ness undefined
@@ -1939,7 +1944,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
             v1 = Vertex((self.clicked_pos[0]-center[0], self.clicked_pos[1]-center[1]))
             if self.snap_mode.get() != 'none':
                 self.snap(FakeEvent(self.clicked_pos[0], self.clicked_pos[1]), v1)
-            self.graph.add_vertex(v1)
+            self.add_vertex(v1)
         self.redraw()
         released_on = self.find_clicked_on(event)
         if released_on in self.graph.get_vertices():
@@ -1948,7 +1953,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
             v2 = Vertex((x, y))
             if self.snap_mode.get() != 'none':
                 self.snap(event, v2)
-            self.graph.add_vertex(v2)
+            self.add_vertex(v2)
         self.graph.connect(vs = (v1,v2))        
 
 # #####################################################################################################
@@ -2419,6 +2424,42 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         width = float(self.canvas.winfo_width())
         height = float(self.canvas.winfo_height())
         return [width / 2, height / 2]
+
+
+    ##############################################################################################################
+    # Code from Spring 2014, transitioning to MVC framework for better maintanability
+    ##############################################################################################################
+    def add_vertex(self, v):
+        """
+        Add a new vertex to the graph, both in the view and the model
+
+        v - a view style Vertex object
+        """
+        self.model.add_vertex()
+        self.graph.add_vertex(v)
+        self.labeling.add_vertex()
+
+    def add_edge(self, edge):
+        """
+        Add a new edge to the graph, both in the view and the model
+
+        edge - a view style Edge object
+        """
+        (v,w) = self.get_edge_indices(edge)
+        self.model.add_vertex(v, w)
+        self.graph.add_edge(edge)
+
+    def get_edge_indices(self, edge):
+        """
+        Returns the indices of the vertices incident with edge in the view's vertex list
+        """
+        return tuple(self.get_vertex_index(vert) for vert in edge.vs)
+
+    def get_vertex_index(self, vert):
+        """
+        Returns the index of vert in the view's vertex list
+        """
+        return self.graph.edges.index(vert)
 
 def main(update = False):
     warnings.filterwarnings("ignore")

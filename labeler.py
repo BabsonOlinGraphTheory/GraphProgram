@@ -60,8 +60,8 @@ class LPolynomialLabeler(Labeler):
     """
 
     # CLASS METHODS
-    def __init__(self, constraints, holes):
-        self.constraint_values= constraints
+    def __init__(self, constraints=(2,1), holes='allowed'):
+        self.constraint_values = constraints
         self.holes = holes
 
     def constraints(self, *constraints):

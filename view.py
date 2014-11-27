@@ -641,3 +641,9 @@ class Graph:
         self.tags = []
         self.vertices = self.get_vertices()
         self.vertices.append(vertex)
+
+    def add_edge(self, edge):
+        """
+        Adds the edge object edge to the graph
+        """
+        self.edges.append(edge)
