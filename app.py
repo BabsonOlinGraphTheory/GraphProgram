@@ -14,7 +14,7 @@ import tkinter.messagebox
 import tkinter.simpledialog
 import pickle
 import math
-# import generate
+import generate
 from copy import deepcopy
 from math import *
 from Gui import *
@@ -1069,12 +1069,12 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
                 # er.append(e)
         # for e in er:
             # try:
-                # self.graph.edges.remove(e)
+                # self.remove_edge(e)
             # except:
                 # pass
         # for v in vr:
             # try:
-                # self.graph.remove_vertex(v)
+                # self.remove_vertex(v)
             # except:
                 # pass
         # self.redraw()
@@ -1094,14 +1094,14 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
                         er.append(e)
         for e in er:
             try:
-                self.graph.edges.remove(e)
-            except:
-                pass
+                self.remove_edge(e)
+            except Exception as err:
+                print(err)
         for v in vr:
             try:
-                self.graph.remove_vertex(v)
-            except:
-                pass
+                self.remove_vertex(v)
+            except Exception as err:
+                print(err)
         self.box = False
         self.redraw()        
         
@@ -1405,18 +1405,21 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
             label = int(label)
         for v in [v for v in self.graph.get_vertices() if v.selected]:
             v.label=label
+            self.labeling.set_label(self.get_vertex_index(v), label)
         self.redraw()
 
     def unlabel_vertex(self, event=None):
         self.registerwithundo()
         for v in [v for v in self.graph.get_vertices() if v.selected]:
             v.label='NULL'
+            self.labeling.set_label(self.get_vertex_index(v), None)
         self.redraw()
 
     def clear_labeling(self, event=None):
         self.registerwithundo()
         for v in self.graph.get_vertices():
             v.label='NULL'
+            self.labeling.set_label(self.get_vertex_index(v), None)
         self.redraw()
 
     def autolabel(self, minlambda, quiet = False):
@@ -1426,53 +1429,54 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         print("graphgui labels: ", [vert.label for vert in verts])
         print("current labeling: ", self.labeling.labels())
         print("current model: ", self.model.adjacency_list())
-        edges = self.graph.edges
-        constraints = self.graph.labelingConstraints
+        # edges = self.graph.edges
+        # constraints = self.graph.labelingConstraints
         labels=[]
         #print "autolabel"
-        if type(constraints)==type([]):
+        # if type(constraints)==type([]):
             # labels = graphmath.auto_label(verts, edges, constraints, minlambda, self.holes_mode.get())
-            labels = self.labeler.complete_labeling(self.model, self.labeling, minlambda, sys.maxsize).labels()
-            print("graphgui got labels: ", labels)
-        else:
-            if self.kpath:
-                for i in range(minlambda):
-                    self.stepthroughkpath();
-            else:
-                if minlambda==-1:
-                    print("finishing k-labeling.")
-                    labels=graphmath.finishklabeling(verts,edges,constraints)
-                else:
-                    print("finding a conversion set")
-                    labels=graphmath.find_conversion_set(verts,edges,constraints, minlambda)
-            ##put the control-2-3-4-5-etc code call here
-        if labels == "RealError":
-            tkinter.messagebox.showinfo("Holes and Reals don't mix!", "Don't select 'minimize' or 'no holes' with real labels or constraints; this doesn't make sense!")
-            self.control_up()
-            return
-        if labels == False:
-            if type(self.graph.labelingConstraints)==type([]):
-                tkinter.messagebox.showinfo("Bad Partial Labeling", "The partial labeling is incorrect.  Please correct before auto-finishing the labeling.")
-            else:
-                tkinter.messagebox.showinfo("No conversion set of size " + minlambda,
-                                      "There is no conversion set of size " + minlambda + ". If you want, you can try again with a larger size, which will be slower.")
-            self.control_up()
-            return
+        labels = self.labeler.complete_labeling(self.model, self.labeling, minlambda, sys.maxsize).labels()
+        self.labeling.labels(labels)
+        print("graphgui got labels: ", labels)
+        # else:
+        #     if self.kpath:
+        #         for i in range(minlambda):
+        #             self.stepthroughkpath();
+        #     else:
+        #         if minlambda==-1:
+        #             print("finishing k-labeling.")
+        #             labels=graphmath.finishklabeling(verts,edges,constraints)
+        #         else:
+        #             print("finding a conversion set")
+        #             labels=graphmath.find_conversion_set(verts,edges,constraints, minlambda)
+        #     ##put the control-2-3-4-5-etc code call here
+        # if labels == "RealError":
+        #     tkinter.messagebox.showinfo("Holes and Reals don't mix!", "Don't select 'minimize' or 'no holes' with real labels or constraints; this doesn't make sense!")
+        #     self.control_up()
+        #     return
+        # if labels == False:
+        #     if type(self.graph.labelingConstraints)==type([]):
+        #         tkinter.messagebox.showinfo("Bad Partial Labeling", "The partial labeling is incorrect.  Please correct before auto-finishing the labeling.")
+        #     else:
+        #         tkinter.messagebox.showinfo("No conversion set of size " + minlambda,
+        #                               "There is no conversion set of size " + minlambda + ". If you want, you can try again with a larger size, which will be slower.")
+        #     self.control_up()
+        #     return
         for i in range(len(verts)):
             verts[i].label = labels[i]
-        # (lmin,lmax,complete)=graphmath.labeling_difference(verts)
-        self.redraw()
-        # lnum = lmax - lmin
-        if (not quiet):
-            self.control_up()
-            if type(self.graph.labelingConstraints)==type([]):
-                tkinter.messagebox.showinfo("Labeling Span", "The labeling span for this coloring is " + str(lnum) + ".\n  Largest label: " + str(lmax) + "\n Smallest label: " + str(lmin))
-            elif (minlambda == -1):
-                s='The graph is completely covered!'
-                if not complete:
-                    s='The graph is NOT completely covered.'
-                tkinter.messagebox.showinfo("Conversion Time", "The conversion time for this coloring is " + str(lnum) + ".\n  Largest time: " + str(lmax) + "\n Smallest time: " + str(lmin)+"\n"+s)
-        #print "\nautolabel done.\n"
+        # # (lmin,lmax,complete)=graphmath.labeling_difference(verts)
+        # self.redraw()
+        # # lnum = lmax - lmin
+        # if (not quiet):
+        #     self.control_up()
+        #     if type(self.graph.labelingConstraints)==type([]):
+        #         tkinter.messagebox.showinfo("Labeling Span", "The labeling span for this coloring is " + str(lnum) + ".\n  Largest label: " + str(lmax) + "\n Smallest label: " + str(lmin))
+        #     elif (minlambda == -1):
+        #         s='The graph is completely covered!'
+        #         if not complete:
+        #             s='The graph is NOT completely covered.'
+        #         tkinter.messagebox.showinfo("Conversion Time", "The conversion time for this coloring is " + str(lnum) + ".\n  Largest time: " + str(lmax) + "\n Smallest time: " + str(lmin)+"\n"+s)
+        # print "\nautolabel done.\n"
         # return lnum
 
     def check_labeling(self,quiet = False):
@@ -2453,8 +2457,29 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         edge - a view style Edge object
         """
         (v,w) = self.get_edge_indices(edge)
-        self.model.add_vertex(v, w)
+        self.model.add_edge(v, w)
         self.graph.add_edge(edge)
+
+    def remove_vertex(self, v):
+        """
+        Removes vertex v from both the view and the model.
+        """
+        # print("removing vertex")
+        # print(self.model.adjacency_list())
+        # print(self.graph.get_vertices())
+        i = self.get_vertex_index(v)
+        self.model.remove_vertex(i)
+        self.labeling.remove_vertex(i)
+        self.graph.remove_vertex(v)
+
+    def remove_edge(self, edge):
+        """
+        Removes edge edge from both the view and the model.
+        """
+        self.graph.remove_edge(edge)
+        (v,w) = self.get_edge_indices(edge)
+        self.model.remove_edge(v, w)
+        print(self.model.adjacency_list())
 
     def get_edge_indices(self, edge):
         """
@@ -2467,6 +2492,19 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         Returns the index of vert in the view's vertex list
         """
         return self.graph.get_vertices().index(vert)
+
+    def view_to_model(self, view):
+        """
+        Given a view representation of a graph, returns the equivalent model representation
+        """
+        vertices = view.get_vertices()
+        edges = view.get_edges()
+        adj = [] * len(vertices)
+        for edge in edges:
+            (v,w) = self.get_edge_indices(edge)
+            adj[v].append(w)
+            adj[w].append(v)
+        return Model(adj)
 
 def main(update = False):
     warnings.filterwarnings("ignore")

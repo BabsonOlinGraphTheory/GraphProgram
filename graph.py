@@ -163,9 +163,9 @@ class Graph:
             mat.append(row)
         return mat
 
-    def delete_vertex(self, v):
+    def remove_vertex(self, v):
         """
-        Deletes the vth vertex in the graph and all incident edges
+        Removes the vth vertex in the graph and all incident edges
         """
         adj = self.adjacency_list()
         adj.pop(v)
@@ -175,6 +175,15 @@ class Graph:
             for connection in vert:
                 if connection > v:
                     vert[vert.index(connection)] -= 1
+        self.adjacency_list(adj)
+
+    def remove_edge(self, v, w):
+        """
+        Removes the edge in the graph connecting vertices v and w
+        """
+        adj = self.adjacency_list()
+        adj[v].remove(w)
+        adj[w].remove(v)
         self.adjacency_list(adj)
 
     def add_vertex(self):
@@ -190,8 +199,10 @@ class Graph:
         Adds a new edge from v to w to the graph
         """
         adj = self.adjacency_list()
-        adj[v].append(w)
-        adj[w].append(v)
+        if w not in adj[v]:
+            adj[v].append(w) 
+        if v not in adj[w]:
+            adj[w].append(v) 
         self.adjacency_list(adj)
 
     def connect(self, vs):
@@ -201,9 +212,8 @@ class Graph:
         adj = self.adjacency_list()
         for v1 in vs:
             for v2 in vs:
-                if v1 != v2:
+                if v1 != v2 and v2 not in adj[v1]:
                     adj[v1].append(v2)
-                    adj[v2].append(v1)
 
     def is_regular(self):
         """

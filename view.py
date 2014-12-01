@@ -490,6 +490,9 @@ class Graph:
         self.labelingConstraints = labelingConstraints
         #self.randomGraph();
 
+    def get_edges(self):
+        return self.edges
+
     def randomGraph(self):
         numverts=random.randint(4,30);
         for i in range(numverts):
@@ -644,3 +647,9 @@ class Graph:
         Adds the edge object edge to the graph
         """
         self.edges.append(edge)
+
+    def remove_edge(self, edge):
+        """
+        Removes the edge, edge, from the graph
+        """
+        self.edges.remove(edge)

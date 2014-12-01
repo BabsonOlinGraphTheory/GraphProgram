@@ -27,11 +27,20 @@ class Labeler:
         """
         if not current_labeling:
             current_labeling = Labeling([None] * g.num_verts())
+        if not self.confirm_labeling(g, current_labeling):
+            raise(Exception("There is an error in your current labeling somewhere.")) #TODO: Find the error for them
         for val in range(min_label, max_label+1):
             potential_labeling = self.try_labeling(g.distance_matrix(), deepcopy(current_labeling), val)
             if potential_labeling:
                 return potential_labeling
         raise(Exception("We could not find a valid labeling for this graph with your constraints. Check your bounds for min and max labels and/or your current labels."))
+
+    def confirm_labeling(self, g, current_labeling):
+        """
+        Essentially a wrapper for check_labeling for the abstract class. 
+        Use this for checking labelings once, rather than to evaluate possible labelings inside a labeling method.
+        """
+        return self.check_labeling(g.distance_matrix(), current_labeling)
 
 class LPolynomialLabeler(Labeler):
     """
@@ -95,21 +104,6 @@ class LPolynomialLabeler(Labeler):
                         diff = abs(labels[i] - labels[j])
                         if diff < constraints[dist_mat[i][j]-1]:
                             return False
-        return True
-
-    def complete_labeling(self, g, current_labeling, min_label, max_label):
-        """
-        Returns a valid labeling of g, a graph object, 
-        pursuant to the labels already defined in current_labeling, a labeling object.
-        min_label and max_label are the minimum and maximum labels of the graph.
-        """
-        if not current_labeling:
-            current_labeling = Labeling([None] * g.num_verts())
-        for val in range(min_label, max_label+1):
-            potential_labeling = self.try_labeling(g.distance_matrix(), deepcopy(current_labeling), val)
-            if potential_labeling:
-                return potential_labeling
-        raise(Exception("We could not find a valid labeling for this graph with your constraints. Check your bounds for min and max labels and/or your current labels."))
         return True
 
     def check_label(self, dist_mat, l, v):

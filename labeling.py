@@ -53,9 +53,9 @@ class Labeling:
         labels.append(None)
         self.labels(labels)
 
-    def delete_vertex(self, v):
+    def remove_vertex(self, v):
         """
-        Deletes the vth label from the label list for the deletion of a vertex
+        Removes the vth label from the label list for the deletion of a vertex
         """
         labels = self.labels()
         labels.pop(v)
