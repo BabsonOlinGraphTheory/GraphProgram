@@ -127,11 +127,11 @@ class LPolynomialLabeler(Labeler):
         """
         potential_labels = range(max_label+1)
         labels = current_labeling.labels()
-        current_label = 0
+        vertex_to_label = 0
         # Find the first label that is None. If there isn't one, we are done labeling, 
         # so check the labeling and return it if it works, False otherwise.
         try:
-            current_label = labels.index(None)
+            vertex_to_label = labels.index(None)
         except:
             if self.check_labeling(dist_mat, current_labeling):
                 return current_labeling
