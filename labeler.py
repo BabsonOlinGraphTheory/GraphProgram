@@ -25,15 +25,20 @@ class Labeler:
         pursuant to the labels already defined in current_labeling, a labeling object.
         min_label and max_label are the minimum and maximum labels of the graph.
         """
+        # For convenience, allow passing in None as a labeling instead of a Labeling containing all Nones.
         if not current_labeling:
             current_labeling = Labeling([None] * g.num_verts())
+
+        # Check the current labeling so we don't waste time looking for a labeling that isn't possible.
         if not self.confirm_labeling(g, current_labeling):
             raise(Exception("There is an error in your current labeling somewhere.")) #TODO: Find the error for them
+
+        # Loop through all possible lambdas and try to find a valid labeling for that lambda 
         for val in range(min_label, max_label+1):
             potential_labeling = self.try_labeling(g.distance_matrix(), deepcopy(current_labeling), val)
             if potential_labeling:
                 return potential_labeling
-        raise(Exception("We could not find a valid labeling for this graph with your constraints. Check your bounds for min and max labels and/or your current labels."))
+        raise(Exception("We could not find a valid labeling for this graph with your constraints. Check your bounds for min and max labels."))
 
     def confirm_labeling(self, g, current_labeling):
         """

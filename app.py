@@ -1484,7 +1484,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         verts = self.graph.get_vertices()
         edges = self.graph.edges
         constraints = self.graph.labelingConstraints
-        res = graphmath.check_labeling(verts,edges,constraints)
+        res = self.labeler.confirm_labeling(self.graph, self.labeling)
         if res == True:
             if not quiet:
                 self.control_up()
@@ -2463,10 +2463,9 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
     def remove_vertex(self, v):
         """
         Removes vertex v from both the view and the model.
+
+        v - a view style Vertex object
         """
-        # print("removing vertex")
-        # print(self.model.adjacency_list())
-        # print(self.graph.get_vertices())
         i = self.get_vertex_index(v)
         self.model.remove_vertex(i)
         self.labeling.remove_vertex(i)
@@ -2475,6 +2474,8 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
     def remove_edge(self, edge):
         """
         Removes edge edge from both the view and the model.
+
+        edge - a view style Edge object
         """
         self.graph.remove_edge(edge)
         (v,w) = self.get_edge_indices(edge)
@@ -2484,14 +2485,18 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
     def get_edge_indices(self, edge):
         """
         Returns the indices of the vertices incident with edge in the view's vertex list
+
+        edge - a view style Edge object
         """
         return tuple(self.get_vertex_index(vert) for vert in edge.vs)
 
-    def get_vertex_index(self, vert):
+    def get_vertex_index(self, v):
         """
-        Returns the index of vert in the view's vertex list
+        Returns the index of v in the view's vertex list
+
+        v - a view style Vertex object
         """
-        return self.graph.get_vertices().index(vert)
+        return self.graph.get_vertices().index(v)
 
     def view_to_model(self, view):
         """

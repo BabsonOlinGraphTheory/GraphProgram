@@ -167,6 +167,8 @@ class Graph:
         """
         Removes the vth vertex in the graph and all incident edges
         """
+        # Pop the deleted vertex, remove all adjacencies to it in other vertices, 
+        # then decrement adjacencies to higher index vertices
         adj = self.adjacency_list()
         adj.pop(v)
         for vert in adj:
@@ -194,6 +196,7 @@ class Graph:
         adj.append([])
         self.adjacency_list(adj)
 
+    # Deprecate this in favor of connect or leave for convenience? This is very slightly more efficient
     def add_edge(self, v, w):
         """
         Adds a new edge from v to w to the graph
@@ -255,10 +258,11 @@ class Graph:
     def shortest_path_matrix(self): #This seems to give distances, not actual paths
         """
         Returns a matrix containing in the (i,j)th entry 
-        the shortest path from vertex i to vertex j, using a Breadth First Search.
+        the distance from vertex i to vertex j.
         """
         adj = self.as_adjacency_matrix()
         size = len(adj)
+        # BFS for shortest paths
         for vert in range(size):
             i = 2
             A = [vert]
@@ -280,14 +284,14 @@ class Graph:
                 i=i+1
         return adj
 
-    def distance_matrix(self): #Since spm gives distances not paths, this is probably redundant
+    def distance_matrix(self): #Since spm gives distances not paths, this is probably redundant, leaving as alias for now.
         """
         Returns a matrix containing in the (i,j)th entry 
         the distance of the shortest path from vertex i to vertex j.
         """
         spm = self.shortest_path_matrix()
         return spm
-        return [[len(path) for path in t] for t in spm]
+        # return [[len(path) for path in t] for t in spm]
 
     def neighbors(self, A, B):
         """
