@@ -58,6 +58,8 @@ a stack of frames to avoid keeping track of parent widgets explicitly.
     http://www.gnu.org/licenses/gpl.html or write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
+
+  Modified 2015 by Josh Langowitz for compatability with python 3.4
     
 """
 
@@ -76,19 +78,33 @@ class Thread(threading.Thread):
     def __init__(self, target, *args):
         threading.Thread.__init__(self, target=target, args=args)
         self.start()
+try:
+    class Semaphore(threading._Semaphore):
+        """this is a wrapper class that makes signal and wait
+        synonyms for acquire and release, and also makes signal
+        take an optional argument.
+        """
+        wait = threading._Semaphore.acquire
+        
+        def signal(self, n=1):
+            for i in range(n): self.release()
 
-class Semaphore(threading._Semaphore):
-    """this is a wrapper class that makes signal and wait
-    synonyms for acquire and release, and also makes signal
-    take an optional argument.
-    """
-    wait = threading._Semaphore.acquire
-    
-    def signal(self, n=1):
-        for i in range(n): self.release()
+        def value(self):
+            return self._Semaphore__value
+except:
+    class Semaphore(threading.Semaphore):
+        """this is a wrapper class that makes signal and wait
+        synonyms for acquire and release, and also makes signal
+        take an optional argument.
+        """
+        wait = threading.Semaphore.acquire
+        
+        def signal(self, n=1):
+            for i in range(n): self.release()
 
-    def value(self):
-        return self._Semaphore__value
+        def value(self):
+            return self.Semaphore__value
+
 
 
 
