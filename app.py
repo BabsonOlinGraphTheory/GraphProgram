@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from decimal import Decimal, getcontext
-getcontext.prec = 10
+getcontext().prec = 10
 RELATIVE_PREFERENCE_PATH ='preferences.ini'
 
 from copy import copy, deepcopy
@@ -1333,71 +1333,39 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         while res == '':
             res = tkinter.simpledialog.askstring("Change Labeling Constraints", \
                                            "Please enter new labeling constraints.\n" \
-                                            +"Enter a single value for K conversion ('3' for K3).\n" \
-                                            +"M - majority, MS - strong majority.\n" \
+                                            +"Enter a single value for radio k-coloring.\n" \
                                             +"comma deliminated list of values for L(m,n,...) labeling ('2,1' for L(2,1) labeling)")
         self.change_constraints(res)
         self.control_up()
 
     def change_constraints(self, newconstraints):
-        backup = self.graph.labelingConstraints
         if (len(newconstraints)>1 and newconstraints[0].isdigit()):
-            self.graph.labelingConstraints = []
+            LPoly_constraints = []
             try:
                 for label in newconstraints.split(','):
                     label = Decimal(label)
                     if label == int(label):
-                        self.graph.labelingConstraints.append(int(label))
+                        LPoly_constraints.append(int(label))
                     else:
-                        self.graph.labelingConstraints.append(label)
+                        LPoly_constraints.append(label)
+                self.labeler.constraints(LPoly_constraints)
             except:
                 tkinter.messagebox.showinfo("Error", "The labeling constraints were input in a bad form! Using old constraints.")
-                self.graph.labelingConstraints = backup
             labeltxt = "Labeling Constraints:\nL("
             for labConst in self.graph.labelingConstraints:
                 labeltxt += str(labConst) + ","
             labeltxt = labeltxt[:-1]
             labeltxt += ")"
-            self.constraintstxt.set(labeltxt)
 
         else:            
-            self.graph.labelingConstraints = 0
             try:
                 label=int(newconstraints[0])
-                self.graph.labelingConstraints=label
-                labeltxt = "Labeling Constraints:\nK"+ str(label)
+                self.labeler.constraints([x for x in range(label, 0, -1)])
+                labeltxt = "Labeling Constraints:\nRadio k="+ str(label)
             except:
-                self.kpath = False
-                if newconstraints.upper()[0]=='M':
-                    if (len(newconstraints)>1 and newconstraints.upper()[1]=='S'):
-                        self.graph.labelingConstraints=-2
-                        labeltxt = "Labeling Constraints:\nStrong Majority"
-                    else:
-                        self.graph.labelingConstraints=-1
-                        labeltxt = "Labeling Constraints:\nMajority"
-                elif newconstraints.upper()[0] == 'K':
-                    self.kpath = True
-                    label = int(newconstraints[1])
-                    self.graph.labelingConstraints = label
-                    labeltxt = "Labeling Constraints:\nK-path(" + str(label) +")"
-                elif newconstraints.upper()[0] == 'T':
-                    labeltxt = "Labeling Constraints:\nTemporary conversion"
-                    self.graph.labelingConstraints = -4
-                    if newconstraints.upper()[1] == 'M':
-                        self.graph.permanentChange = .5
-                        self.graph.temporaryChange = .1
-                    #Looks like we have a (T)emporary conversion
-                    else:
-                        
-                        self.graph.permanentChange = 4
-                        self.graph.temporaryChange = 3
-                    #syntax is T 
-                else:
-                    tkinter.messagebox.showinfo("Error", "The labeling constraints were input in a bad form! Using old constraints.")
-                    self.graph.labelingConstraints = backup
+                tkinter.messagebox.showinfo("Error", "The labeling constraints were input in a bad form! Using old constraints.")
             self.constraintstxt.set(labeltxt)
         self.control_up()
-        #print self.kpath
         
     def label_vertex(self, label):            
         self.registerwithundo()
@@ -1429,62 +1397,17 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         print("graphgui labels: ", [vert.label for vert in verts])
         print("current labeling: ", self.labeling.labels())
         print("current model: ", self.model.adjacency_list())
-        # edges = self.graph.edges
-        # constraints = self.graph.labelingConstraints
-        labels=[]
-        #print "autolabel"
-        # if type(constraints)==type([]):
-            # labels = graphmath.auto_label(verts, edges, constraints, minlambda, self.holes_mode.get())
         labels = self.labeler.complete_labeling(self.model, self.labeling, minlambda, sys.maxsize).labels()
         self.labeling.labels(labels)
         print("graphgui got labels: ", labels)
-        # else:
-        #     if self.kpath:
-        #         for i in range(minlambda):
-        #             self.stepthroughkpath();
-        #     else:
-        #         if minlambda==-1:
-        #             print("finishing k-labeling.")
-        #             labels=graphmath.finishklabeling(verts,edges,constraints)
-        #         else:
-        #             print("finding a conversion set")
-        #             labels=graphmath.find_conversion_set(verts,edges,constraints, minlambda)
-        #     ##put the control-2-3-4-5-etc code call here
-        # if labels == "RealError":
-        #     tkinter.messagebox.showinfo("Holes and Reals don't mix!", "Don't select 'minimize' or 'no holes' with real labels or constraints; this doesn't make sense!")
-        #     self.control_up()
-        #     return
-        # if labels == False:
-        #     if type(self.graph.labelingConstraints)==type([]):
-        #         tkinter.messagebox.showinfo("Bad Partial Labeling", "The partial labeling is incorrect.  Please correct before auto-finishing the labeling.")
-        #     else:
-        #         tkinter.messagebox.showinfo("No conversion set of size " + minlambda,
-        #                               "There is no conversion set of size " + minlambda + ". If you want, you can try again with a larger size, which will be slower.")
-        #     self.control_up()
-        #     return
         for i in range(len(verts)):
             verts[i].label = labels[i]
-        # # (lmin,lmax,complete)=graphmath.labeling_difference(verts)
-        # self.redraw()
-        # # lnum = lmax - lmin
-        # if (not quiet):
-        #     self.control_up()
-        #     if type(self.graph.labelingConstraints)==type([]):
-        #         tkinter.messagebox.showinfo("Labeling Span", "The labeling span for this coloring is " + str(lnum) + ".\n  Largest label: " + str(lmax) + "\n Smallest label: " + str(lmin))
-        #     elif (minlambda == -1):
-        #         s='The graph is completely covered!'
-        #         if not complete:
-        #             s='The graph is NOT completely covered.'
-        #         tkinter.messagebox.showinfo("Conversion Time", "The conversion time for this coloring is " + str(lnum) + ".\n  Largest time: " + str(lmax) + "\n Smallest time: " + str(lmin)+"\n"+s)
-        # print "\nautolabel done.\n"
-        # return lnum
 
     def check_labeling(self,quiet = False):
         #print "check labeling"
         verts = self.graph.get_vertices()
         edges = self.graph.edges
-        constraints = self.graph.labelingConstraints
-        res = self.labeler.confirm_labeling(self.graph, self.labeling)
+        res = self.labeler.confirm_labeling(self.model, self.labeling)
         if res == True:
             if not quiet:
                 self.control_up()
