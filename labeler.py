@@ -45,7 +45,7 @@ class Labeler:
         Essentially a wrapper for check_labeling for the abstract class. 
         Use this for checking labelings once, rather than to evaluate possible labelings inside a labeling method.
         """
-        return self.check_labeling(g.distance_matrix(), current_labeling)
+        return self.check_labeling(g.distance_matrix(), deepcopy(current_labeling), True)
 
 class LPolynomialLabeler(Labeler):
     """
@@ -95,7 +95,7 @@ class LPolynomialLabeler(Labeler):
         return self.holes
 
     # OBJECT METHODS
-    def check_labeling(self, dist_mat, l):
+    def check_labeling(self, dist_mat, l, report_errors):
         """
         Checks to see if l, a labeling object, is a valid labeling of a graph with distance matrix dist_mat.
         """
@@ -108,6 +108,8 @@ class LPolynomialLabeler(Labeler):
                     if dist_mat[i][j] > 0 and dist_mat[i][j] <= len(constraints):
                         diff = abs(labels[i] - labels[j])
                         if diff < constraints[dist_mat[i][j]-1]:
+                            if report_errors:
+                                return (False, (i,j))
                             return False
         return True
 
@@ -138,7 +140,7 @@ class LPolynomialLabeler(Labeler):
         try:
             vertex_to_label = labels.index(None)
         except:
-            if self.check_labeling(dist_mat, current_labeling):
+            if self.check_labeling(dist_mat, current_labeling, False):
                 return current_labeling
             else:
                 return False
@@ -146,9 +148,9 @@ class LPolynomialLabeler(Labeler):
         # Guess the label at the first None position, trying each label less than the max, 
         # and then try to label the rest of the graph based on that guess, returning the first one that works
         for label in potential_labels:
-            labels[current_label] = label
+            labels[vertex_to_label] = label
             current_labeling = Labeling(labels)
-            if self.check_label(dist_mat, current_labeling, current_label):
+            if self.check_label(dist_mat, current_labeling, vertex_to_label):
                 potential_labeling = self.try_labeling(dist_mat, Labeling(copy(labels)), max_label)
                 if potential_labeling:
                     return potential_labeling
