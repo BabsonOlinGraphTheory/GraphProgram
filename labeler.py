@@ -30,7 +30,7 @@ class Labeler:
             current_labeling = Labeling([None] * g.num_verts())
 
         # Check the current labeling so we don't waste time looking for a labeling that isn't possible.
-        if not self.confirm_labeling(g, current_labeling):
+        if not self.confirm_labeling(g, current_labeling)[0]:
             raise(Exception("There is an error in your current labeling somewhere.")) #TODO: Find the error for them
 
         # Loop through all possible lambdas and try to find a valid labeling for that lambda 
@@ -111,6 +111,8 @@ class LPolynomialLabeler(Labeler):
                             if report_errors:
                                 return (False, (i,j))
                             return False
+        if report_errors:
+            return (True, None)
         return True
 
     def check_label(self, dist_mat, l, v):

@@ -1092,7 +1092,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
                 for e in self.graph.edges:
                     if v in e.vs:
                         er.append(e)
-        for e in er:
+        for e in set(er):
             try:
                 self.remove_edge(e)
             except Exception as err:
@@ -1339,32 +1339,30 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         self.control_up()
 
     def change_constraints(self, newconstraints):
-        if (len(newconstraints)>1 and newconstraints[0].isdigit()):
-            LPoly_constraints = []
-            try:
-                for label in newconstraints.split(','):
-                    label = Decimal(label)
-                    if label == int(label):
-                        LPoly_constraints.append(int(label))
-                    else:
-                        LPoly_constraints.append(label)
-                self.labeler.constraints(LPoly_constraints)
-            except:
-                tkinter.messagebox.showinfo("Error", "The labeling constraints were input in a bad form! Using old constraints.")
-            labeltxt = "Labeling Constraints:\nL("
-            for labConst in self.graph.labelingConstraints:
-                labeltxt += str(labConst) + ","
-            labeltxt = labeltxt[:-1]
-            labeltxt += ")"
-
-        else:            
-            try:
-                label=int(newconstraints[0])
+        print(newconstraints)
+        constraints_list = []
+        try:
+            for label in newconstraints.split(','):
+                label = Decimal(label)
+                if label == int(label):
+                    constraints_list.append(int(label))
+                else:
+                    constraints_list.append(label)
+            if len(constraints_list) > 1:
+                self.labeler.constraints(constraints_list)
+                labeltxt = "Labeling Constraints:\nL("
+                for labConst in constraints_list:
+                    labeltxt += str(labConst) + ","
+                labeltxt = labeltxt[:-1]
+                labeltxt += ")"
+            else:
+                label=int(constraints_list[0])
                 self.labeler.constraints([x for x in range(label, 0, -1)])
                 labeltxt = "Labeling Constraints:\nRadio k="+ str(label)
-            except:
-                tkinter.messagebox.showinfo("Error", "The labeling constraints were input in a bad form! Using old constraints.")
             self.constraintstxt.set(labeltxt)
+        except:
+            tkinter.messagebox.showinfo("Error", "The labeling constraints were input in a bad form! Using old constraints.")
+        print(self.labeler.constraints())
         self.control_up()
         
     def label_vertex(self, label):            
@@ -1397,11 +1395,18 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         print("graphgui labels: ", [vert.label for vert in verts])
         print("current labeling: ", self.labeling.labels())
         print("current model: ", self.model.adjacency_list())
-        labels = self.labeler.complete_labeling(self.model, self.labeling, minlambda, sys.maxsize).labels()
-        self.labeling.labels(labels)
-        print("graphgui got labels: ", labels)
-        for i in range(len(verts)):
-            verts[i].label = labels[i]
+        try:
+            labels = self.labeler.complete_labeling(self.model, self.labeling, minlambda, sys.maxsize).labels()
+            self.labeling.labels(labels)
+            print("graphgui got labels: ", labels)
+            for i in range(len(verts)):
+                verts[i].label = labels[i]
+        except Exception as e:
+            print(e)
+            if str(e) == "There is an error in your current labeling somewhere.":
+                self.check_labeling()
+            else:
+                raise e
 
     def check_labeling(self,quiet = False):
         #print "check labeling"

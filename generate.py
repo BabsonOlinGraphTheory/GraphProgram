@@ -304,7 +304,7 @@ def rectangular_graph(layers, cross_connections, xsize, ysize):
     if (len(layers) != len(cross_connections) + 1) and len(layers) != 1:
         return ("ERROR","number of layers and number of connections don't match")
 
-    layer_sizes = list(range( 0, ysize+1, ysize//(len(layers)-1))) # radius of each layer
+    layer_sizes = list(range( 0, int(ysize+1), int(ysize/(len(layers)-1)))) # radius of each layer
 
     # place the vertices
     #vertices = [-1] * len(layers)
