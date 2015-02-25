@@ -1879,21 +1879,16 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         
         if self.clicked_on in self.graph.get_vertices():
             v1 = self.clicked_on
-        else:
-            v1 = Vertex((self.clicked_pos[0]-center[0], self.clicked_pos[1]-center[1]))
-            if self.snap_mode.get() != 'none':
-                self.snap(FakeEvent(self.clicked_pos[0], self.clicked_pos[1]), v1)
-            self.add_vertex(v1)
-        self.redraw()
-        released_on = self.find_clicked_on(event)
-        if released_on in self.graph.get_vertices():
-            v2 = released_on
-        else:
-            v2 = Vertex((x, y))
-            if self.snap_mode.get() != 'none':
-                self.snap(event, v2)
-            self.add_vertex(v2)
-        self.connect(vs = (v1,v2))        
+            self.redraw()
+            released_on = self.find_clicked_on(event)
+            if released_on in self.graph.get_vertices():
+                v2 = released_on
+                self.connect(vs = (v1,v2))        
+        # else:
+        #     v2 = Vertex((x, y))
+        #     if self.snap_mode.get() != 'none':
+        #         self.snap(event, v2)
+        #     self.add_vertex(v2)
 
 # #####################################################################################################
 # Other Functions
