@@ -1413,7 +1413,7 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         verts = self.graph.get_vertices()
         edges = self.graph.edges
         res = self.labeler.confirm_labeling(self.model, self.labeling)
-        if res == True:
+        if res[0] == True:
             if not quiet:
                 self.control_up()
                 tkinter.messagebox.showinfo("Correct Labeling", "The labeling is correct.")

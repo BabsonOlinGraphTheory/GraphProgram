@@ -111,6 +111,8 @@ class LPolynomialLabeler(Labeler):
                             if report_errors:
                                 return (False, (i,j))
                             return False
+        if report_errors:
+            return (True, None)
         return True
 
     def check_label(self, dist_mat, l, v):
