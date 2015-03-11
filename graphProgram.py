@@ -13,6 +13,7 @@ import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.simpledialog
 import pickle
+import json
 import math
 import generate
 from copy import deepcopy
@@ -46,6 +47,8 @@ MAXUNDO = 100
 NUMPHYSICSTYPES=4
 
 myFormats = [('Graph','*.graph')]
+
+jsonDecoder = json.JSONDecoder()
 
 class FakeEvent():
     def __init__(self,x,y):
@@ -440,7 +443,7 @@ No Holes: The generated labelings contain no holes, at the possible expense of h
         labelmenu = Menu(menu)
         menu.add_cascade(label="Labeling", menu=labelmenu)
         labelmenu.add_command(label="Label Selected Vertices", command=self.label_message)
-        #labelmenu.add_command(label="Label (with reals) Selected Vertices", command=self.label_real_message)
+        labelmenu.add_command(label="Load Full Labeling", command=self.load_label_message)
         labelmenu.add_command(label="Unlabel Selected Vertices (ctrl-u)", command=self.unlabel_vertex)
         labelmenu.add_command(label="Clear Labeling", command=self.clear_labeling)
         labelmenu.add_separator()
@@ -1315,6 +1318,10 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
         self.message("Label Vertices", "What would you like to label these vertices?", self.label_vertex, type="Decimal")
         self.control_up()
 
+    def load_label_message(self, event=None):
+        self.message("Label Vertices", "Enter your labeling in the form '[0,2,4,...]'", self.load_labeling, type="JSON")
+        self.control_up()
+
     def autolabel_message(self):
         self.message("Auto-Label Graph", "What is the minimum lambda-number for this graph?", self.autolabel)
         self.control_up()
@@ -1364,6 +1371,19 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
             tkinter.messagebox.showinfo("Error", "The labeling constraints were input in a bad form! Using old constraints.")
         print(self.labeler.constraints())
         self.control_up()
+
+    def load_labeling(self, labels):
+        self.registerwithundo()
+        vertices = self.graph.get_vertices()
+        if len(labels) != len(vertices):
+            tkinter.messagebox.showinfo("Error", "Number of labels to load must match number of vertices. No modifications made")
+            raise("Number of labels to load must match number of vertices")
+        self.labeling.labels(labels)
+        i = 0
+        for v in vertices:
+            v.label = labels[i]
+            i += 1
+        self.redraw()
         
     def label_vertex(self, label):            
         self.registerwithundo()
@@ -2317,6 +2337,11 @@ Email iamtesch@gmail.com for feature requests, questions, or help."
             res = tkinter.simpledialog.askstring(title, message)
             if res != None:
                 function( Decimal(res) )
+
+        if type=="JSON":
+            res = tkinter.simpledialog.askstring(title, message)
+            if res != None:
+                function( jsonDecoder.decode(res) )
 
         elif type=="yesnocancel":
             if tkinter.messagebox._show(title,message,icon=tkinter.messagebox.QUESTION,type=tkinter.messagebox.YESNOCANCEL)=="yes":
