@@ -100,7 +100,7 @@ class LPolynomialLabeler(Labeler):
         Checks to see if l, a labeling object, is a valid labeling of a graph with distance matrix dist_mat.
         """
         constraints = self.constraints()
-        labels = l.labels()
+        labels = l.labels
         num_verts = len(labels)
         for i in range(num_verts - 1):
             for j in range(i+1, num_verts):
@@ -120,7 +120,7 @@ class LPolynomialLabeler(Labeler):
         Checks to see if vertex v in a graph with distance matrix dist_mat is validly labelled in labeling l
         """
         constraints = self.constraints()
-        labels = l.labels()
+        labels = l.labels
         num_verts = len(labels)
         for i in range(num_verts):
             if labels[i] != None and labels[v] != None:
@@ -135,7 +135,7 @@ class LPolynomialLabeler(Labeler):
         Tries to find a valid labeling of g with the highest label being max_label, given the current labeling.
         """
         potential_labels = range(max_label+1)
-        labels = current_labeling.labels()
+        labels = current_labeling.labels
         vertex_to_label = 0
         # Find the first label that is None. If there isn't one, we are done labeling, 
         # so check the labeling and return it if it works, False otherwise.
