@@ -1,6 +1,6 @@
-from labeling import Labeling
-from graph import Graph
-from labeler import LPolynomialLabeler
+from lib.labeling import Labeling
+from lib.graph import Graph
+from lib.labeler import LPolynomialLabeler
 from tabulate import tabulate
 
 def phi(n):
