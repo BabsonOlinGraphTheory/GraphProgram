@@ -7,7 +7,7 @@ This is the main Flask app backend for the graph labeling GUI
 """
 
 # Flask imports
-from flask import Flask
+from flask import Flask, render_template
 
 # Routing imports
 from graphapp.routes.graph import graph_blueprint
@@ -15,7 +15,7 @@ from graphapp.routes.labeler import labeler_blueprint
 from graphapp.routes.labeling import labeling_blueprint
 
 # Create the flask app and register blueprints
-app = Flask(__name__)
+app = Flask("graphapp")
 app.register_blueprint(graph_blueprint, url_prefix="/graph")
 app.register_blueprint(labeler_blueprint, url_prefix="/labeler")
 app.register_blueprint(labeling_blueprint, url_prefix="/labeling")
@@ -24,4 +24,4 @@ app.register_blueprint(labeling_blueprint, url_prefix="/labeling")
 # Render landing page
 @app.route('/')
 def home():
-    pass
+    return render_template("index.html")

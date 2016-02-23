@@ -6,7 +6,7 @@ Python 3
 This module contains the persistent labeling object and the Flask labeling Blueprint.
 """
 #Flask imports
-from flask import Blueprint
+from flask import Blueprint, request
 
 # Graphlib imports
 from graphlib.labeling import Labeling
@@ -17,4 +17,8 @@ labeling_blueprint = Blueprint("labeling", __name__)
 
 ###############################################################################
 
-
+# ROUTES:
+@labeling_blueprint.route("/label", methods=['POST'])
+def new():
+    labeling.set_label(request.form["v"], request.form["label"])
+    return "label set"
