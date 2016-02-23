@@ -1,6 +1,6 @@
-from lib.labeling import Labeling
-from lib.graph import Graph
-from lib.labeler import LPolynomialLabeler
+from graphlib.labeling import Labeling
+from graphlib.graph import Graph
+from graphlib.labeler import LPolynomialLabeler
 from tabulate import tabulate
 
 def phi(n):
@@ -73,5 +73,5 @@ def ds_and_fs_from_cycle(cycle):
 if __name__ == '__main__':
     #near_distance_cycle(43)
     max_n = 50
-    for k in xrange(1, 17):
+    for k in range(1, 17):
         near_distance_cycle(4 * k + 3)

@@ -1,6 +1,6 @@
-from lib.labeling import Labeling
-from lib.graph import Graph
-from lib.labeler import LPolynomialLabeler
+from graphlib.labeling import Labeling
+from graphlib.graph import Graph
+from graphlib.labeler import LPolynomialLabeler
 from tabulate import tabulate
 
 def phi(n):
@@ -14,8 +14,8 @@ def lower_bound(n):
     r = n % 4
     phi_n = phi(n)
     if r % 2 == 0:
-        return ((n-2)/2) * phi_n + 2
-    return ((n-1)/2) * phi_n
+        return ((n-2)//2) * phi_n + 2
+    return ((n-1)//2) * phi_n
 
 def main():
     ns = range(3, 14, 1)
