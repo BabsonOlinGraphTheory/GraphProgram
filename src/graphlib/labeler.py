@@ -117,9 +117,8 @@ class LPolynomialLabeler(Labeler):
     """
 
     # CLASS METHODS
-    def __init__(self, constraints=(2,1), holes='allowed'):
+    def __init__(self, constraints=(2,1)):
         self._constraints = constraints
-        self.holes = holes
 
     #Properties
     @property
