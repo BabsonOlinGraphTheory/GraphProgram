@@ -72,8 +72,8 @@ class Labeler(metaclass=ABCMeta):
         """
         Checks to see if the labeling is a valid labeling of the graph.
 
-        dist_mat      - distance matrix of the graph to check the labeling agaisnt
-        l             - labeling to check
+        dist_mat - distance matrix of the graph to check the labeling agaisnt
+        l        - labeling to check
 
         """
         raise(NotImplementedError("Subclasses must override confirm_labeling_impl"))
@@ -107,13 +107,10 @@ class LPolynomialLabeler(Labeler):
 
     OBJECT METHODS:
 
-    Public:
-        complete_labeling
-
     Private:
-        confirm_labeling_impl
-        check_label
-        complete_labeling_impl
+        confirm_labeling_impl  - see base class
+        complete_labeling_impl - see base class
+        check_label            - checks a single label
     """
 
     # CLASS METHODS
