@@ -34,10 +34,16 @@ class Graph:
         tensor_product            - returns tensor product of two graphs
         cartesian_product         - returns cartesian product of two graphs
         strong_product            - returns strong product of two graphs
-        shortest_path_matrix      - returns matrix of shortest paths between vertices
+        shortest_path_matrix      - returns matrix of shortest paths between vertices TODO: make this do what it says!
         distance_matrix           - returns matrix of distances between vertices
         neighbors                 - returns members of one list of vertices that are adjacent to any member of a second list of vertices
         degrees                   - returns a list of degrees of each vertex
+        remove_vertex             - removes a vertex
+        add_vertex                - adds a vertex
+        remove_edge               - removes a edge
+        add_edge                  - adds a edge
+        connect                   - connects a set of vertices
+        num_verts                 - get number of vertices
 
     """
 
