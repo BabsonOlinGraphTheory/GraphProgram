@@ -75,6 +75,8 @@ class Labeler(metaclass=ABCMeta):
         dist_mat - distance matrix of the graph to check the labeling agaisnt
         l        - labeling to check
 
+        RETURNS: tuple containing whether the labeling is valid and 
+        a pair of vertices that cause the labeling to be invalid, if it is invalid
         """
         raise(NotImplementedError("Subclasses must override confirm_labeling_impl"))
 
@@ -88,6 +90,8 @@ class Labeler(metaclass=ABCMeta):
         dist_mat         - distance matrix of the graph to check the labeling agaisnt
         current_labeling - labeling so far
         max_label        - highest label to allow
+
+        RETURNS: valid labeling or False
         """
         raise(NotImplementedError("Subclasses must override complete_labeling_impl"))
 
@@ -134,6 +138,8 @@ class LPolynomialLabeler(Labeler):
         dist_mat      - distance matrix of the graph to check the labeling agaisnt
         l             - labeling to check
 
+        RETURNS: tuple containing whether the labeling is valid and 
+        a pair of vertices that cause the labeling to be invalid, if it is invalid
         """
         constraints = self.constraints
         labels = l.labels
@@ -155,6 +161,7 @@ class LPolynomialLabeler(Labeler):
         l        - labeling to check
         v        - vertex to check
 
+        RETURNS: whether the label is valid
         """
         constraints = self.constraints
         labels = l.labels
@@ -176,6 +183,8 @@ class LPolynomialLabeler(Labeler):
         dist_mat         - distance matrix of the graph to check the labeling agaisnt
         current_labeling - labeling so far
         max_label        - highest label to allow
+
+        RETURNS: valid labeling or False
         """
         potential_labels = range(max_label+1)
         labels = current_labeling.labels
