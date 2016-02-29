@@ -54,7 +54,7 @@ def add_vertex():
 
 @graph_blueprint.route("/edge/add", methods=['POST'])
 def add_edge():
-    graph.add_edge(request.form["v1"], request.form["v2"])
+    graph.add_edge(int(request.form["v1"]), int(request.form["v2"]))
     return "edge added"
 
 @graph_blueprint.route("/vertex/remove", methods=['POST'])

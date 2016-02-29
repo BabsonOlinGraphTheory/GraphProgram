@@ -25,3 +25,8 @@ app.register_blueprint(labeling_blueprint, url_prefix="/labeling")
 @app.route('/')
 def home():
     return render_template("index.html")
+
+# Serve js files
+@app.route('/javascripts/<path:path>')
+def serve_static(path):
+    return app.send_static_file('javascripts/'+path)
