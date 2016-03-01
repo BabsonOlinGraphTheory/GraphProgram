@@ -18,6 +18,12 @@ function init_graph(svg) {
         labeling: []
     };
 
+    graph.new = function(adj) {
+        $.post("/graph/new", {adj:adj}, function(){
+            console.log("new graph created on backend")
+        });
+    }
+
     /* Add a vertex to the graph at the specified location
     **
     ** x - x coordinate
@@ -27,7 +33,8 @@ function init_graph(svg) {
         // Make sure we successfully add a vertex on the backend before we do anything on the frontend.
         $.post("/graph/vertex/add", function(success){
             graph.vertices.push({x:x, y:y});
-            graph.draw()
+            graph.labeling.push(null);
+            graph.draw();
         });
     };
 
@@ -42,11 +49,27 @@ function init_graph(svg) {
             graph.edges.push({v1:v1, v2:v2});
             var line_data = [graph.vertices[v1], graph.vertices[v2]]
             var line_function = d3.svg.line()
-                .x(function(d) { return d.x })
-                .y(function(d) { return d.y });
-            graph.draw()
+                .x(function(d) { return d.x; })
+                .y(function(d) { return d.y; });
+            graph.draw();
         });
     };
+
+    /* Try to complete a labeling of the graph.
+    **
+    */
+    graph.complete_labeling = function(min, max) {
+        $.post("/labeler/complete", {min:min, max:max}, function(resp){
+            if (resp.problems) {
+                alert(resp.err + resp.problems);
+            } else if (resp.err) {
+                alert(resp.err);
+            } else {
+                graph.labeling = resp.labels;
+                graph.draw();
+            }
+        });
+    }
 
     /* Draw the graph
     **
@@ -62,10 +85,18 @@ function init_graph(svg) {
         .enter()
         .append("g")
             .append("circle")
-            .attr("cx", function(v) { return v.x })
-            .attr("cy", function(v) { return v.y })
+            .attr("cx", function(v) { return v.x; })
+            .attr("cy", function(v) { return v.y; })
             .attr("r", 5)
             .attr("fill", "black");
+
+        // Labels
+        svg.select("#vertices").selectAll("g")
+            .append("text")
+            .attr("x", function(v) { return v.x + 10; })
+            .attr("y", function(v) { return v.y + 10; })
+            .text(function(v, i) { return graph.labeling[i]; })
+
 
         // Edges
         svg.append("g")
@@ -78,15 +109,14 @@ function init_graph(svg) {
             .attr("d", function(d) {
                 var line_data = [graph.vertices[d.v1], graph.vertices[d.v2]];
                 var line_function = d3.svg.line()
-                    .x(function(v) { return v.x })
-                    .y(function(v) { return v.y });
+                    .x(function(v) { return v.x; })
+                    .y(function(v) { return v.y; });
                 return line_function(line_data);
             })
             .attr("fill", "none")
             .attr("stroke", "black")
-            .attr("stroke-width", 2)
-
+            .attr("stroke-width", 2);
     }
-
-    return graph
+    graph.new();
+    return graph;
 }

@@ -1,7 +1,7 @@
 /*Olin Graph Program Spring 2016
 **Authors: Josh Langowitz
 **
-**Main javascript code for handling user interaction and communication to the Flask backend
+**Main javascript code for handling user interaction.
 */
 
 // Create the graph and all the GUI elements and interaction handlers
@@ -17,5 +17,7 @@ $(document).ready(function(){
         var y = coords[1];
         graph.add_vertex(x, y);
         graph.add_edge(0, graph.vertices.length);
+        graph.complete_labeling(0, graph.vertices.length + 1);
+        console.log(graph.labeling);
     });
 });

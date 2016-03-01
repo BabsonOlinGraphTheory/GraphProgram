@@ -10,9 +10,9 @@ This is the main Flask app backend for the graph labeling GUI
 from flask import Flask, render_template
 
 # Routing imports
+from graphapp.routes.labeling import labeling_blueprint
 from graphapp.routes.graph import graph_blueprint
 from graphapp.routes.labeler import labeler_blueprint
-from graphapp.routes.labeling import labeling_blueprint
 
 # Create the flask app and register blueprints
 app = Flask("graphapp")
