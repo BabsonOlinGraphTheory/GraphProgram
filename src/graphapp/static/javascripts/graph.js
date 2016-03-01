@@ -77,27 +77,6 @@ function init_graph(svg) {
     graph.draw = function () {
         svg.selectAll("g").remove();
 
-        // Vertices
-        svg.append("g")
-        .attr("id", "vertices")
-        .selectAll("g")
-        .data(graph.vertices)
-        .enter()
-        .append("g")
-            .append("circle")
-            .attr("cx", function(v) { return v.x; })
-            .attr("cy", function(v) { return v.y; })
-            .attr("r", 5)
-            .attr("fill", "black");
-
-        // Labels
-        svg.select("#vertices").selectAll("g")
-            .append("text")
-            .attr("x", function(v) { return v.x + 10; })
-            .attr("y", function(v) { return v.y + 10; })
-            .text(function(v, i) { return graph.labeling[i]; })
-
-
         // Edges
         svg.append("g")
         .attr("id", "edges")
@@ -116,6 +95,26 @@ function init_graph(svg) {
             .attr("fill", "none")
             .attr("stroke", "black")
             .attr("stroke-width", 2);
+
+        // Vertices
+        svg.append("g")
+        .attr("id", "vertices")
+        .selectAll("g")
+        .data(graph.vertices)
+        .enter()
+        .append("g")
+        .attr("transform", function(v) { return "translate(" + v.x + ", " + v.y + ")"; })
+            .append("circle")
+            .attr("r", 12)
+            .attr("fill", "black");
+
+        // Labels
+        svg.select("#vertices").selectAll("g")
+            .append("text")
+            .attr("text-anchor", "middle")
+            .attr("dy", ".3em")
+            .attr("fill", "white")
+            .text(function(v, i) { return graph.labeling[i]; })
     }
     graph.new();
     return graph;
