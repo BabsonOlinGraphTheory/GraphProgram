@@ -12,15 +12,13 @@
 */
 function init_graph(svg) {
     // Vertices contain coordinate information, edges contain a pair of vertex numbers
-    graph = {
-        vertices: [],
-        edges: [],
-        labeling: []
-    };
+    graph = {};
 
     graph.new = function(adj) {
         $.post("/graph/new", {adj:adj}, function(){
-            console.log("new graph created on backend")
+            graph.vertices = [];
+            graph.edges = [];
+            graph.labeling = [];
         });
     }
 
