@@ -24,24 +24,28 @@ graph_blueprint = Blueprint("graph", __name__)
 # ROUTES:
 @graph_blueprint.route("/new", methods=['POST'])
 def new():
+    global graph;
     graph = Graph(request.form.get("adj", []))
     l.labeling = Labeling([None] * graph.num_verts())
     return "new graph created"
 
 @graph_blueprint.route("/new/from_adjacency_matrix", methods=['POST'])
 def new_from_adjacency_matrix():
+    global graph;
     graph = Graph.new_from_adjacency_matrix(request.form["adj"])
     l.labeling = Labeling(graph.num_verts())
     return "new graph created"
 
 @graph_blueprint.route("/new/grid", methods=['POST'])
 def new_grid():
+    global graph;
     graph = Graph.new_grid(request.form["r"], request.form["c"], request.form["wrap"])
     l.labeling = Labeling(graph.num_verts())
     return "new graph created"
 
 @graph_blueprint.route("/new/cycle", methods=['POST'])
 def new_cycle():
+    global graph;
     graph = Graph.new_cycle(request.form["v"])
     l.labeling = Labeling(graph.num_verts())
     return "new graph created"

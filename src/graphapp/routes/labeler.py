@@ -24,6 +24,7 @@ labeler_blueprint = Blueprint("labeler", __name__)
 # ROUTES:
 @labeler_blueprint.route("/new/LPoly", methods=['POST'])
 def new_poly():
+    global labeler;
     labeler = LPolynomialLabeler(request.form["constraints"])
     return "new labeler created"
 
