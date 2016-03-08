@@ -12,13 +12,14 @@
 */
 function init_graph(svg) {
     // Vertices contain coordinate information, edges contain a pair of vertex numbers
-    graph = {};
+    var graph = {};
 
     graph.new = function(adj) {
-        $.post("/graph/new", {adj:adj}, function(){
+        return $.post("/graph/new", {adj:adj}, function(){
             graph.vertices = [];
             graph.edges = [];
             graph.labeling = [];
+            graph.click_handlers = { vertex:[], edge:[] };
         });
     }
 
@@ -29,7 +30,7 @@ function init_graph(svg) {
     */
     graph.add_vertex = function(x, y) {
         // Make sure we successfully add a vertex on the backend before we do anything on the frontend.
-        $.post("/graph/vertex/add", function(success){
+        return $.post("/graph/vertex/add", function(success){
             graph.vertices.push({x:x, y:y, selected:false});
             graph.labeling.push(null);
             graph.draw();
@@ -43,7 +44,7 @@ function init_graph(svg) {
     */
     graph.add_edge = function (v1, v2) {
         // Make sure we successfully add an edge on the backend before we do anything on the frontend.
-        $.post("/graph/edge/add", {v1:v1, v2:v2}, function(success){
+        return $.post("/graph/edge/add", {v1:v1, v2:v2}, function(success){
             graph.edges.push({v1:v1, v2:v2, selected:false});
             var line_data = [graph.vertices[v1], graph.vertices[v2]]
             var line_function = d3.svg.line()
@@ -57,7 +58,7 @@ function init_graph(svg) {
     **
     */
     graph.complete_labeling = function(min, max) {
-        $.post("/labeler/complete", {min:min, max:max}, function(resp){
+        return $.post("/labeler/complete", {min:min, max:max}, function(resp){
             if (resp.problems) {
                 alert(resp.err + resp.problems);
             } else if (resp.err) {
@@ -67,6 +68,23 @@ function init_graph(svg) {
                 graph.draw();
             }
         });
+    }
+
+    /* bind a click handler to a graph element type
+    **
+    ** type - type of element to bind to: "edge", "vertex", or "label"
+    ** f    - function to handle click events
+    */
+    graph.bind_click_handler = function(type, f) {
+        graph.click_handlers[type].push(f);
+    }
+
+    /* unbind all click handler for a graph element type
+    **
+    ** type - type of element to unbind: "edge", "vertex", or "label"
+    */
+    graph.clear_click_handlers = function(type) {
+        graph.click_handlers[type] = [];
     }
 
     /* clear the current selection
@@ -81,21 +99,6 @@ function init_graph(svg) {
         };
     }
 
-    /* select a graph element. Used as a click handler, not for external use.
-    **
-    ** d - datum of the graph element selected
-    */
-    graph._select = function(d) {
-        //Don't trigger any click handlers on the svg itself.
-        d3.event.stopPropagation();
-
-        //Don't trigger any click handlers on the svg itself.
-        if (!d3.event.shiftKey) {
-            graph.clear_selection();
-        }
-        d.selected = true;
-        graph.draw();
-    }
 
     /* Draw the graph
     **
@@ -111,8 +114,8 @@ function init_graph(svg) {
         .enter()
         .append("g")
             .append("path")
-            .attr("d", function(d) {
-                var line_data = [graph.vertices[d.v1], graph.vertices[d.v2]];
+            .attr("d", function(e) {
+                var line_data = [graph.vertices[e.v1], graph.vertices[e.v2]];
                 var line_function = d3.svg.line()
                     .x(function(v) { return v.x; })
                     .y(function(v) { return v.y; });
@@ -120,8 +123,12 @@ function init_graph(svg) {
             })
             .attr("fill", "none")
             .attr("stroke", function(e) { return e.selected ? "blue" : "black" })
-            .attr("stroke-width", 2)
-            .on("click", graph._select);
+            .attr("stroke-width", 3)
+            .on("click", function(e, i) {
+                for (var j = 0; j < graph.click_handlers.edge.length; j++) {
+                    graph.click_handlers.edge[j](e, i);
+                };
+            });
 
         // Vertices
         svg.append("g")
@@ -131,11 +138,15 @@ function init_graph(svg) {
         .enter()
         .append("g")
         .attr("transform", function(v) { return "translate(" + v.x + ", " + v.y + ")"; })
+            .on("click", function(v, i) {
+                for (var j = 0; j < graph.click_handlers.vertex.length; j++) {
+                    graph.click_handlers.vertex[j](v, i);
+                };
+            })
             .append("circle")
             .attr("r", 12)
             .attr("stroke", function(v) { return v.selected ? "blue" : "black" })
             .attr("fill", "white")
-            .on("click", graph._select);
 
         // Labels
         svg.select("#vertices").selectAll("g")
@@ -144,8 +155,11 @@ function init_graph(svg) {
             .attr("dy", ".3em")
             .attr("fill", function(v) { return v.selected ? "blue" : "black" })
             .text(function(v, i) { return graph.labeling[i]; })
-            .on("click", graph._select);
+            // .on("click", function(v, i) {
+            //     for (var j = 0; j < graph.click_handlers.vertex.length; j++) {
+            //         graph.click_handlers.vertex[j](v, i);
+            //     };
+            // });
     }
-    graph.new();
     return graph;
 }
