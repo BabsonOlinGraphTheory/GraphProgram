@@ -30,7 +30,7 @@ function init_graph(svg) {
     graph.add_vertex = function(x, y) {
         // Make sure we successfully add a vertex on the backend before we do anything on the frontend.
         $.post("/graph/vertex/add", function(success){
-            graph.vertices.push({x:x, y:y});
+            graph.vertices.push({x:x, y:y, selected:false});
             graph.labeling.push(null);
             graph.draw();
         });
@@ -44,7 +44,7 @@ function init_graph(svg) {
     graph.add_edge = function (v1, v2) {
         // Make sure we successfully add an edge on the backend before we do anything on the frontend.
         $.post("/graph/edge/add", {v1:v1, v2:v2}, function(success){
-            graph.edges.push({v1:v1, v2:v2});
+            graph.edges.push({v1:v1, v2:v2, selected:false});
             var line_data = [graph.vertices[v1], graph.vertices[v2]]
             var line_function = d3.svg.line()
                 .x(function(d) { return d.x; })
@@ -69,6 +69,34 @@ function init_graph(svg) {
         });
     }
 
+    /* clear the current selection
+    **
+    */
+    graph.clear_selection = function() {
+        for (var i = 0; i < graph.edges.length; i++) {
+            graph.edges[i].selected = false;
+        };
+        for (var i = 0; i < graph.vertices.length; i++) {
+            graph.vertices[i].selected = false;
+        };
+    }
+
+    /* select a graph element. Used as a click handler, not for external use.
+    **
+    ** d - datum of the graph element selected
+    */
+    graph._select = function(d) {
+        //Don't trigger any click handlers on the svg itself.
+        d3.event.stopPropagation();
+
+        //Don't trigger any click handlers on the svg itself.
+        if (!d3.event.shiftKey) {
+            graph.clear_selection();
+        }
+        d.selected = true;
+        graph.draw();
+    }
+
     /* Draw the graph
     **
     */
@@ -91,8 +119,9 @@ function init_graph(svg) {
                 return line_function(line_data);
             })
             .attr("fill", "none")
-            .attr("stroke", "black")
-            .attr("stroke-width", 2);
+            .attr("stroke", function(e) { return e.selected ? "blue" : "black" })
+            .attr("stroke-width", 2)
+            .on("click", graph._select);
 
         // Vertices
         svg.append("g")
@@ -104,16 +133,18 @@ function init_graph(svg) {
         .attr("transform", function(v) { return "translate(" + v.x + ", " + v.y + ")"; })
             .append("circle")
             .attr("r", 12)
-            .attr("stroke", "black")
-            .attr("fill", "white");
+            .attr("stroke", function(v) { return v.selected ? "blue" : "black" })
+            .attr("fill", "white")
+            .on("click", graph._select);
 
         // Labels
         svg.select("#vertices").selectAll("g")
             .append("text")
             .attr("text-anchor", "middle")
             .attr("dy", ".3em")
-            .attr("fill", "black")
+            .attr("fill", function(v) { return v.selected ? "blue" : "black" })
             .text(function(v, i) { return graph.labeling[i]; })
+            .on("click", graph._select);
     }
     graph.new();
     return graph;

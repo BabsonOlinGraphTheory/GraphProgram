@@ -12,6 +12,7 @@ $(document).ready(function(){
 
     graph.add_vertex(100,100);
 
+    //Keep track of which tool is selected
     $(".tools .btn").click(function() {
         tool = $(this).text();
     });
@@ -25,5 +26,6 @@ $(document).ready(function(){
             graph.add_edge(0, graph.vertices.length);
             graph.complete_labeling(0, graph.vertices.length + 1);
         }
+        graph.clear_selection();
     });
 });
