@@ -104,14 +104,15 @@ function init_graph(svg) {
         .attr("transform", function(v) { return "translate(" + v.x + ", " + v.y + ")"; })
             .append("circle")
             .attr("r", 12)
-            .attr("fill", "black");
+            .attr("stroke", "black")
+            .attr("fill", "white");
 
         // Labels
         svg.select("#vertices").selectAll("g")
             .append("text")
             .attr("text-anchor", "middle")
             .attr("dy", ".3em")
-            .attr("fill", "white")
+            .attr("fill", "black")
             .text(function(v, i) { return graph.labeling[i]; })
     }
     graph.new();

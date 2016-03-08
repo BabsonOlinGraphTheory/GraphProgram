@@ -28,5 +28,10 @@ def home():
 
 # Serve js files
 @app.route('/javascripts/<path:path>')
-def serve_static(path):
+def serve_static_js(path):
     return app.send_static_file('javascripts/'+path)
+
+# Serve css files
+@app.route('/stylesheets/<path:path>')
+def serve_static_css(path):
+    return app.send_static_file('stylesheets/'+path)
