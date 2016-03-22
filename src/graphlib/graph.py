@@ -225,8 +225,8 @@ class Graph:
         for vert in adj:
             if v in vert:
                 vert.remove(v)
+            decrements = set()
             for connection in vert:
-                decrements = set()
                 if connection > v:
                     decrements.add(connection)
             vert.difference_update(decrements)

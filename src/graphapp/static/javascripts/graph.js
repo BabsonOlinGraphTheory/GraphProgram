@@ -48,11 +48,98 @@ function init_graph(svg) {
         // Make sure we successfully add an edge on the backend before we do anything on the frontend.
         return $.post("/graph/edge/add", {v1:v1, v2:v2}, function(success){
             graph.edges.push({v1:v1, v2:v2, selected:false});
-            var line_data = [graph.vertices[v1], graph.vertices[v2]]
-            var line_function = d3.svg.line()
-                .x(function(d) { return d.x; })
-                .y(function(d) { return d.y; });
             graph.draw();
+        });
+    };
+
+    /* Remove a vertex from the graph
+    **
+    ** v - index of vertex to remove
+    */
+    graph.remove_vertex = function(v) {
+        // Make sure we successfully remove a vertex on the backend before we do anything on the frontend.
+        return $.post("/graph/vertex/remove", {v:v}, function(success){
+            graph._remove_vertex(v);
+            graph.draw();
+        });
+    };
+
+    //Helper for removing vertex, just on the client side.
+    graph._remove_vertex = function(v) {
+        graph.vertices.splice(v, 1);
+        graph.labeling.splice(v, 1);
+        removes = [];
+        for (var i = 0; i < graph.edges.length; i++) {
+            if (graph.edges[i][v1] == v || graph.edges[i][v2] == v) {
+                //Edge contains removed vertex, remove it too
+                removes.push(i);
+            } else {
+                //Update vertex indices bigger than v to reflect that v is gone.
+                if (graph.edges[i][v1] > v) {
+                    graph.edges[i][v1]--;
+                }
+                if (graph.edges[i][v1] > v) {
+                    graph.edges[i][v1]--;
+                }
+            }
+        };
+        for (var j = removes.length - 1; j >= 0; j--) {
+            graph.edges.splice(removes[j], 1);
+        };
+    };
+
+    /* Remove an edge from the graph
+    **
+    ** e - edge index
+    */
+    graph.remove_edge = function (e) {
+        // Make sure we successfully remove an edge on the backend before we do anything on the frontend.
+        return $.post("/graph/edge/remove", {v1:graph.edges[e].v1, v2:graph.edges[e].v2}, function(success){
+            graph.edges.splice(e, 1);
+            graph.draw();
+        });
+    };
+
+    /* Delete all selected graph elements
+    **
+    */
+    graph.delete_selected = function () {
+        console.log("deleting things");
+        edges = [];
+        verts = [];
+        for (var e = graph.edges.length - 1; e >= 0 ; e--) {
+            if (graph.edges[e].selected) {
+                edges.push(graph.edges[e]);
+            }
+        };
+
+        for (var v = graph.vertices.length - 1; v >= 0; v--) {
+            console.log(v);
+            if (graph.vertices[v].selected) {
+                verts.push(v);
+            }
+        };
+        console.log({es:edges, vs:verts});
+        return $.ajax({
+            method: "POST",
+            url: "/graph/delete", 
+            data: JSON.stringify({es:edges, vs:verts}), 
+            complete: function(success) {
+                console.log("deleted on server");
+                for (var e = graph.edges.length - 1; e >= 0 ; e--) {
+                    if (graph.edges[e].selected) {
+                        graph.edges.splice(e, 1);
+                    }
+                };
+
+                for (var v = 0; v < verts.length; v++) {
+                    graph._remove_vertex(verts[v]);
+                };
+                graph.clear_selection();
+                graph.draw();
+            },
+            mimeType: "application/json",
+            contentType: "application/json"
         });
     };
 

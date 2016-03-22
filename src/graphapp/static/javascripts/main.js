@@ -103,6 +103,13 @@ $(document).ready(function(){
         if (tool == $("#label-tool").attr("data-value")) {
 
         };
+
+        //Delete selected
+        $("#delete-selected").click(function() {
+            clear_interaction();
+            console.log("deleting selected");
+            graph.delete_selected().done(setup_interaction);
+        });
     };
 
     /* Removes up all the interactions for the user. Used when server is busy to enforce server truth.
@@ -115,6 +122,8 @@ $(document).ready(function(){
         graph.clear_mouseup_handlers("edge");
         graph.clear_mousedown_handlers("vertex");
         graph.clear_mousedown_handlers("edge");
+
+        $("#delete-selected").unbind();
 
         svg.on("click", null);
         svg.on("mousemove", null);

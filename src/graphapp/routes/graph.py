@@ -74,6 +74,20 @@ def remove_edge():
     graph.remove_edge(request.form["v1"], request.form["v2"])
     return "edge removed"
 
+@graph_blueprint.route("/delete", methods=['POST'])
+def delete():
+    data = request.get_json()
+    verts = data["vs"]
+    edges = data["es"]
+    print(verts)
+    print(edges)
+    for edge in edges:
+        graph.remove_edge(edge["v1"], edge["v2"]);
+    for vert in verts:
+        graph.remove_vertex(vert)
+        l.labeling.remove_vertex(vert)
+    print(graph.adjacency_list)
+    return "vertices and edges deleted"
 @graph_blueprint.route("/connect", methods=['POST'])
 def connect_vertices():
     graph.connect(request.form["vs"])
