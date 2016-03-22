@@ -4,6 +4,15 @@
 **Main javascript code for handling user interaction.
 */
 
+//Priorities: Plan to have something to show in 2 weeks.
+//BUG
+//Label
+//Move
+//Zoom
+//Undo-Redo
+//Save-Load
+
+
 // Create the graph and all the GUI elements and interaction handlers
 $(document).ready(function(){
     var svg = d3.select("#viz");
@@ -33,8 +42,8 @@ $(document).ready(function(){
 
         //select tool interactions
         if (tool == $("#select-tool").attr("data-value")) {
-            graph.bind_click_handler("vertex", select);
-            graph.bind_click_handler("edge", select);
+            graph.bind_handler("click", "vertex", select);
+            graph.bind_handler("click", "edge", select);
         };
 
         //vertex tool interactions
@@ -52,7 +61,7 @@ $(document).ready(function(){
         //edge tool interactions
         if (tool == $("#edge-tool").attr("data-value")) {
             //Edge add handler
-            graph.bind_mousedown_handler("vertex", function(v, i) {
+            graph.bind_handler("click", "vertex", function(v, i) {
 
                 //make a line
                 svg.append("line")
@@ -62,7 +71,8 @@ $(document).ready(function(){
                     .attr("x1", v.x)
                     .attr("y1", v.y)
                     .attr("x2", v.x)
-                    .attr("y2", v.y);
+                    .attr("y2", v.y)
+                    .attr("pointer-events", "none");
 
                 //have the line follow the mouse
                 svg.on("mousemove", function() {
@@ -79,8 +89,8 @@ $(document).ready(function(){
                 };
 
                 //change vertex click handlers to add an edge to next clicked vertex
-                graph.clear_mousedown_handlers("vertex");
-                graph.bind_mouseup_handler("vertex", function(v2, j) {
+                graph.clear_handlers("click", "vertex");
+                graph.bind_handler("click", "vertex", function(v2, j) {
                     console.log("adding edge");
                     //if we clicked a different vertex, add the edge
                     if(i != j) {
@@ -88,14 +98,16 @@ $(document).ready(function(){
                         graph.add_edge(i, j).done(clear_line);
                     } else {
                         //we are done, clear the line
+                        console.log("same vertex");
                         clear_line();
                     }
-
                 });
 
                 //if you click on nothing, clear the line and reset interactions
                 svg.on("click", clear_line);
                 console.log("bound");
+                console.log(graph.handlers);
+                console.log(graph.handlers.vertex);
             });
         };
 
@@ -116,12 +128,14 @@ $(document).ready(function(){
     **
     */
     var clear_interaction = function() {
-        graph.clear_click_handlers("vertex");
-        graph.clear_click_handlers("edge");
-        graph.clear_mouseup_handlers("vertex");
-        graph.clear_mouseup_handlers("edge");
-        graph.clear_mousedown_handlers("vertex");
-        graph.clear_mousedown_handlers("edge");
+        graph.clear_handlers("click", "vertex");
+        graph.clear_handlers("click", "edge");
+        graph.clear_handlers("mouseup", "vertex");
+        graph.clear_handlers("mouseup","edge");
+        graph.clear_handlers("mousedown","vertex");
+        graph.clear_handlers("mousedown","edge");
+        graph.clear_handlers("mouseover","vertex");
+        graph.clear_handlers("mouseover","edge");
 
         $("#delete-selected").unbind();
 

@@ -19,9 +19,12 @@ function init_graph(svg) {
             graph.vertices = [];
             graph.edges = [];
             graph.labeling = [];
-            graph.click_handlers = { vertex:[], edge:[] };
-            graph.mouseup_handlers = { vertex:[], edge:[] };
-            graph.mousedown_handlers = { vertex:[], edge:[] };
+            graph.handlers = {
+                click: { vertex:[], edge:[] },
+                mouseup: { vertex:[], edge:[] },
+                mousedown: { vertex:[], edge:[] },
+                mouseover: { vertex:[], edge:[] }
+            };
         });
     }
 
@@ -47,6 +50,12 @@ function init_graph(svg) {
     graph.add_edge = function (v1, v2) {
         // Make sure we successfully add an edge on the backend before we do anything on the frontend.
         return $.post("/graph/edge/add", {v1:v1, v2:v2}, function(success){
+            //Check if the edge already exists first
+            for (var i = 0; i < graph.edges.length; i++) {
+                if (graph.edges[i].v1 == v1 && graph.edges[i].v2 == v2) {
+                    return;
+                }
+            };
             graph.edges.push({v1:v1, v2:v2, selected:false});
             graph.draw();
         });
@@ -159,60 +168,26 @@ function init_graph(svg) {
         });
     }
 
-    /* bind a click handler to a graph element type
+    /* bind a handler to a graph element type
     **
-    ** type - type of element to bind to: "edge", "vertex", or "label"
-    ** f    - function to handle click events
+    ** event_type    - the event on which to fire the handler
+    ** element_type  - type of element to bind to: "edge", "vertex"
+    ** f             - function to handle click events
     */
-    graph.bind_click_handler = function(type, f) {
-        graph.click_handlers[type].push(f);
+    graph.bind_handler = function(event_type, element_type, f) {
+        graph.handlers[event_type][element_type].push(f);
     }
 
     /* unbind all click handler for a graph element type
     **
-    ** type - type of element to unbind: "edge", "vertex", or "label"
+    ** event_type    - the event on which to fire the handler
+    ** element_type  - type of element to bind to: "edge", "vertex"
+    ** f             - function to handle click events
     */
-    graph.clear_click_handlers = function(type) {
-        graph.click_handlers[type] = [];
+    graph.clear_handlers = function(event_type, element_type) {
+        graph.handlers[event_type][element_type] = [];
     }
 
-    /* bind a mouseup handler to a graph element type
-    **
-    ** type - type of element to bind to: "edge", "vertex", or "label"
-    ** f    - function to handle mouseup events
-    */
-    graph.bind_mouseup_handler = function(type, f) {
-        graph.mouseup_handlers[type].push(f);
-    }
-
-    /* unbind all mouseup handler for a graph element type
-    **
-    ** type - type of element to unbind: "edge", "vertex", or "label"
-    */
-    graph.clear_mouseup_handlers = function(type) {
-        graph.mouseup_handlers[type] = [];
-    }
-
-    /* bind a mousedown handler to a graph element type
-    **
-    ** type - type of element to bind to: "edge", "vertex", or "label"
-    ** f    - function to handle mousedown events
-    */
-    graph.bind_mousedown_handler = function(type, f) {
-        graph.mousedown_handlers[type].push(f);
-    }
-
-    /* unbind all mousedown handler for a graph element type
-    **
-    ** type - type of element to unbind: "edge", "vertex", or "label"
-    */
-    graph.clear_mousedown_handlers = function(type) {
-        graph.mousedown_handlers[type] = [];
-    }
-
-    /* clear the current selection
-    **
-    */
     graph.clear_selection = function() {
         for (var i = 0; i < graph.edges.length; i++) {
             graph.edges[i].selected = false;
@@ -246,25 +221,22 @@ function init_graph(svg) {
             })
             .attr("fill", "none")
             .attr("stroke", function(e) { return e.selected ? "blue" : "black" })
-            .attr("stroke-width", 3)
-            .on("click", function(e, i) {
-                d3.event.stopPropagation();
-                for (var j = 0; j < graph.click_handlers.edge.length; j++) {
-                    graph.click_handlers.edge[j](e, i);
-                };
-            })
-            .on("mouseup", function(e, i) {
-                d3.event.stopPropagation();
-                for (var j = 0; j < graph.mouseup_handlers.edge.length; j++) {
-                    graph.mouseup_handlers.edge[j](e, i);
-                };
-            })
-            .on("mousedown", function(e, i) {
-                d3.event.stopPropagation();
-                for (var j = 0; j < graph.mousedown_handlers.edge.length; j++) {
-                    graph.mousedown_handlers.edge[j](e, i);
-                };
-            });
+            .attr("stroke-width", 3);
+
+        var edges = svg.select("#edges").selectAll("g");
+        //Bind all types of handlers to edges
+        for (event_type in graph.handlers) {
+            if (graph.handlers.hasOwnProperty(event_type)) {
+                edges.on(event_type, function(e, i) {
+                    //Don't let the event bubble to the svg itself.
+                    d3.event.stopPropagation();
+                    //Call all the handlers
+                    for (var i = 0; i < graph.handlers[event_type].edge.length; i++) {
+                        graph.handlers[event_type].edge[i](e, i);
+                    };
+                });
+            }
+        }
 
         // Vertices
         svg.append("g")
@@ -274,36 +246,38 @@ function init_graph(svg) {
         .enter()
         .append("g")
         .attr("transform", function(v) { return "translate(" + v.x + ", " + v.y + ")"; })
-            .on("click", function(v, i) {
-                d3.event.stopPropagation();
-                for (var j = 0; j < graph.click_handlers.vertex.length; j++) {
-                    graph.click_handlers.vertex[j](v, i);
-                };
-            })
-            .on("mouseup", function(v, i) {
-                d3.event.stopPropagation();
-                for (var j = 0; j < graph.mouseup_handlers.vertex.length; j++) {
-                    graph.mouseup_handlers.vertex[j](v, i);
-                };
-            })
-            .on("mousedown", function(v, i) {
-                d3.event.stopPropagation();
-                for (var j = 0; j < graph.mousedown_handlers.vertex.length; j++) {
-                    graph.mousedown_handlers.vertex[j](v, i);
-                };
-            })
             .append("circle")
             .attr("r", 12)
             .attr("stroke", function(v) { return v.selected ? "blue" : "black" })
             .attr("fill", "white");
 
+        var vertices = svg.select("#vertices").selectAll("g");
+
         // Labels
-        svg.select("#vertices").selectAll("g")
-            .append("text")
+        vertices.append("text")
             .attr("text-anchor", "middle")
             .attr("dy", ".3em")
+            .attr("pointer-events", "none")
             .attr("fill", function(v) { return v.selected ? "blue" : "black" })
             .text(function(v, i) { return graph.labeling[i]; });
+
+        //Bind all types of handlers to vertices
+        for (event_type in graph.handlers) {
+            if (graph.handlers.hasOwnProperty(event_type)) {
+                //Closure on event_type to avoid aliasing issues.
+                (function(event_type){
+                    vertices.on(event_type, function(v, i) {
+                        console.log("vertex handler for", event_type);
+                        //Don't let the event bubble to the svg itself.
+                        d3.event.stopPropagation();
+                        //Call all the handlers
+                        for (var j = 0; j < graph.handlers[event_type].vertex.length; j++) {
+                            graph.handlers[event_type].vertex[j](v, i);
+                        };
+                    });
+                })(event_type);
+            }
+        }
     }
     return graph;
 }
