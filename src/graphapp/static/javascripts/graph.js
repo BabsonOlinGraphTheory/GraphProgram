@@ -20,6 +20,8 @@ function init_graph(svg) {
             graph.edges = [];
             graph.labeling = [];
             graph.click_handlers = { vertex:[], edge:[] };
+            graph.mouseup_handlers = { vertex:[], edge:[] };
+            graph.mousedown_handlers = { vertex:[], edge:[] };
         });
     }
 
@@ -87,6 +89,40 @@ function init_graph(svg) {
         graph.click_handlers[type] = [];
     }
 
+    /* bind a mouseup handler to a graph element type
+    **
+    ** type - type of element to bind to: "edge", "vertex", or "label"
+    ** f    - function to handle mouseup events
+    */
+    graph.bind_mouseup_handler = function(type, f) {
+        graph.mouseup_handlers[type].push(f);
+    }
+
+    /* unbind all mouseup handler for a graph element type
+    **
+    ** type - type of element to unbind: "edge", "vertex", or "label"
+    */
+    graph.clear_mouseup_handlers = function(type) {
+        graph.mouseup_handlers[type] = [];
+    }
+
+    /* bind a mousedown handler to a graph element type
+    **
+    ** type - type of element to bind to: "edge", "vertex", or "label"
+    ** f    - function to handle mousedown events
+    */
+    graph.bind_mousedown_handler = function(type, f) {
+        graph.mousedown_handlers[type].push(f);
+    }
+
+    /* unbind all mousedown handler for a graph element type
+    **
+    ** type - type of element to unbind: "edge", "vertex", or "label"
+    */
+    graph.clear_mousedown_handlers = function(type) {
+        graph.mousedown_handlers[type] = [];
+    }
+
     /* clear the current selection
     **
     */
@@ -125,8 +161,21 @@ function init_graph(svg) {
             .attr("stroke", function(e) { return e.selected ? "blue" : "black" })
             .attr("stroke-width", 3)
             .on("click", function(e, i) {
+                d3.event.stopPropagation();
                 for (var j = 0; j < graph.click_handlers.edge.length; j++) {
                     graph.click_handlers.edge[j](e, i);
+                };
+            })
+            .on("mouseup", function(e, i) {
+                d3.event.stopPropagation();
+                for (var j = 0; j < graph.mouseup_handlers.edge.length; j++) {
+                    graph.mouseup_handlers.edge[j](e, i);
+                };
+            })
+            .on("mousedown", function(e, i) {
+                d3.event.stopPropagation();
+                for (var j = 0; j < graph.mousedown_handlers.edge.length; j++) {
+                    graph.mousedown_handlers.edge[j](e, i);
                 };
             });
 
@@ -139,14 +188,27 @@ function init_graph(svg) {
         .append("g")
         .attr("transform", function(v) { return "translate(" + v.x + ", " + v.y + ")"; })
             .on("click", function(v, i) {
+                d3.event.stopPropagation();
                 for (var j = 0; j < graph.click_handlers.vertex.length; j++) {
                     graph.click_handlers.vertex[j](v, i);
+                };
+            })
+            .on("mouseup", function(v, i) {
+                d3.event.stopPropagation();
+                for (var j = 0; j < graph.mouseup_handlers.vertex.length; j++) {
+                    graph.mouseup_handlers.vertex[j](v, i);
+                };
+            })
+            .on("mousedown", function(v, i) {
+                d3.event.stopPropagation();
+                for (var j = 0; j < graph.mousedown_handlers.vertex.length; j++) {
+                    graph.mousedown_handlers.vertex[j](v, i);
                 };
             })
             .append("circle")
             .attr("r", 12)
             .attr("stroke", function(v) { return v.selected ? "blue" : "black" })
-            .attr("fill", "white")
+            .attr("fill", "white");
 
         // Labels
         svg.select("#vertices").selectAll("g")
@@ -154,12 +216,7 @@ function init_graph(svg) {
             .attr("text-anchor", "middle")
             .attr("dy", ".3em")
             .attr("fill", function(v) { return v.selected ? "blue" : "black" })
-            .text(function(v, i) { return graph.labeling[i]; })
-            // .on("click", function(v, i) {
-            //     for (var j = 0; j < graph.click_handlers.vertex.length; j++) {
-            //         graph.click_handlers.vertex[j](v, i);
-            //     };
-            // });
+            .text(function(v, i) { return graph.labeling[i]; });
     }
     return graph;
 }

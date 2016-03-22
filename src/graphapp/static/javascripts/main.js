@@ -52,9 +52,7 @@ $(document).ready(function(){
         //edge tool interactions
         if (tool == $("#edge-tool").attr("data-value")) {
             //Edge add handler
-            graph.bind_click_handler("vertex", function(v, i) {
-                //Don't trigger any click handlers on the svg itself.
-                d3.event.stopPropagation();
+            graph.bind_mousedown_handler("vertex", function(v, i) {
 
                 //make a line
                 svg.append("line")
@@ -75,28 +73,29 @@ $(document).ready(function(){
                 });
 
                 var clear_line = function() {
+                    console.log("clearing");
                     svg.select("line").remove();
                     setup_interaction();
                 };
 
-                //if you click on nothing, clear the line and reset interactions
-                svg.on("click", clear_line);
-
                 //change vertex click handlers to add an edge to next clicked vertex
-                graph.clear_click_handlers("vertex");
-                graph.bind_click_handler("vertex", function(v2, j) {
-                    //Don't trigger any click handlers on the svg itself.
-                    d3.event.stopPropagation();
-
+                graph.clear_mousedown_handlers("vertex");
+                graph.bind_mouseup_handler("vertex", function(v2, j) {
+                    console.log("adding edge");
                     //if we clicked a different vertex, add the edge
                     if(i != j) {
                         clear_interaction();
-                        graph.add_edge(i, j).done(setup_interaction);
+                        graph.add_edge(i, j).done(clear_line);
+                    } else {
+                        //we are done, clear the line
+                        clear_line();
                     }
 
-                    //we are done, clear the line
-                    clear_line();
                 });
+
+                //if you click on nothing, clear the line and reset interactions
+                svg.on("click", clear_line);
+                console.log("bound");
             });
         };
 
@@ -112,6 +111,10 @@ $(document).ready(function(){
     var clear_interaction = function() {
         graph.clear_click_handlers("vertex");
         graph.clear_click_handlers("edge");
+        graph.clear_mouseup_handlers("vertex");
+        graph.clear_mouseup_handlers("edge");
+        graph.clear_mousedown_handlers("vertex");
+        graph.clear_mousedown_handlers("edge");
 
         svg.on("click", null);
         svg.on("mousemove", null);
@@ -123,9 +126,6 @@ $(document).ready(function(){
     ** i - index of the graph element selected
     */
     var select = function(d, i) {
-        //Don't trigger any click handlers on the svg itself.
-        d3.event.stopPropagation();
-
         if (!d3.event.shiftKey) {
             graph.clear_selection();
         }
