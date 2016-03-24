@@ -79,16 +79,16 @@ function init_graph(svg) {
         graph.labeling.splice(v, 1);
         removes = [];
         for (var i = 0; i < graph.edges.length; i++) {
-            if (graph.edges[i][v1] == v || graph.edges[i][v2] == v) {
+            if (graph.edges[i].v1 == v || graph.edges[i].v2 == v) {
                 //Edge contains removed vertex, remove it too
                 removes.push(i);
             } else {
                 //Update vertex indices bigger than v to reflect that v is gone.
-                if (graph.edges[i][v1] > v) {
-                    graph.edges[i][v1]--;
+                if (graph.edges[i].v1 > v) {
+                    graph.edges[i].v1--;
                 }
-                if (graph.edges[i][v1] > v) {
-                    graph.edges[i][v1]--;
+                if (graph.edges[i].v2 > v) {
+                    graph.edges[i].v2--;
                 }
             }
         };
@@ -188,6 +188,9 @@ function init_graph(svg) {
         graph.handlers[event_type][element_type] = [];
     }
 
+    /* clears the current selection
+    **
+    */
     graph.clear_selection = function() {
         for (var i = 0; i < graph.edges.length; i++) {
             graph.edges[i].selected = false;
@@ -202,6 +205,25 @@ function init_graph(svg) {
     **
     */
     graph.draw = function () {
+        var set_handlers = function(selection, element_type) {
+            for (event_type in graph.handlers) {
+                if (graph.handlers.hasOwnProperty(event_type)) {
+                    //IIFE to avoid aliasing issues with event type.
+                    (function(event_type){
+                        selection.on(event_type, function(v, i) {
+                            console.log("vertex handler for", event_type);
+                            //Don't let the event bubble to the svg itself.
+                            d3.event.stopPropagation();
+                            //Call all the handlers
+                            for (var j = 0; j < graph.handlers[event_type][element_type].length; j++) {
+                                graph.handlers[event_type].vertex[j](v, i);
+                            };
+                        });
+                    })(event_type);
+                }
+            }
+        }
+
         svg.selectAll("g").remove();
 
         // Edges
@@ -225,18 +247,7 @@ function init_graph(svg) {
 
         var edges = svg.select("#edges").selectAll("g");
         //Bind all types of handlers to edges
-        for (event_type in graph.handlers) {
-            if (graph.handlers.hasOwnProperty(event_type)) {
-                edges.on(event_type, function(e, i) {
-                    //Don't let the event bubble to the svg itself.
-                    d3.event.stopPropagation();
-                    //Call all the handlers
-                    for (var i = 0; i < graph.handlers[event_type].edge.length; i++) {
-                        graph.handlers[event_type].edge[i](e, i);
-                    };
-                });
-            }
-        }
+        set_handlers(edges, "edge");
 
         // Vertices
         svg.append("g")
@@ -262,22 +273,7 @@ function init_graph(svg) {
             .text(function(v, i) { return graph.labeling[i]; });
 
         //Bind all types of handlers to vertices
-        for (event_type in graph.handlers) {
-            if (graph.handlers.hasOwnProperty(event_type)) {
-                //Closure on event_type to avoid aliasing issues.
-                (function(event_type){
-                    vertices.on(event_type, function(v, i) {
-                        console.log("vertex handler for", event_type);
-                        //Don't let the event bubble to the svg itself.
-                        d3.event.stopPropagation();
-                        //Call all the handlers
-                        for (var j = 0; j < graph.handlers[event_type].vertex.length; j++) {
-                            graph.handlers[event_type].vertex[j](v, i);
-                        };
-                    });
-                })(event_type);
-            }
-        }
+        set_handlers(vertices, "vertex");
     }
     return graph;
 }
