@@ -23,6 +23,7 @@ function init_graph(svg) {
                 click: { vertex:[], edge:[] },
                 mouseup: { vertex:[], edge:[] },
                 mousedown: { vertex:[], edge:[] },
+                mousemove: { vertex:[], edge:[] },
                 mouseover: { vertex:[], edge:[] }
             };
         });
@@ -211,12 +212,12 @@ function init_graph(svg) {
                     //IIFE to avoid aliasing issues with event type.
                     (function(event_type){
                         selection.on(event_type, function(v, i) {
-                            console.log("vertex handler for", event_type);
+                            // console.log("vertex handler for", event_type);
                             //Don't let the event bubble to the svg itself.
-                            d3.event.stopPropagation();
+                            d3.event.preventDefault();
                             //Call all the handlers
                             for (var j = 0; j < graph.handlers[event_type][element_type].length; j++) {
-                                graph.handlers[event_type].vertex[j](v, i);
+                                graph.handlers[event_type].vertex[j](v, i, this);
                             };
                         });
                     })(event_type);

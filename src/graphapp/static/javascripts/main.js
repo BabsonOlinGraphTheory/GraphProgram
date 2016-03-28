@@ -5,9 +5,7 @@
 */
 
 //Priorities: Plan to have something to show in 2 weeks.
-//BUG
 //Label
-//Move
 //Zoom
 //Undo-Redo
 //Save-Load
@@ -50,12 +48,31 @@ $(document).ready(function(){
         if (tool == $("#vertex-tool").attr("data-value")) {
             //Vertex add handler
             svg.on("click", function() {
-                var coords = d3.mouse(this);
-                var x = coords[0];
-                var y = coords[1];
-                clear_interaction();
-                graph.add_vertex(x, y).done(setup_interaction);
-            });    
+                if (!d3.event.defaultPrevented) {
+                    var coords = d3.mouse(this);
+                    var x = coords[0];
+                    var y = coords[1];
+                    clear_interaction();
+                    graph.add_vertex(x, y).done(setup_interaction);
+                };
+            });
+
+            //Vertex drag handler
+            graph.bind_handler("mousedown", "vertex", function(v, i, ele) {
+                svg.on("mousemove", function() {
+                    var coords = d3.mouse(this);
+                    var x = coords[0];
+                    var y = coords[1];
+                    v.x = x;
+                    v.y = y;
+                    graph.draw();
+                    // console.log("we in mousemove");
+                })
+                graph.bind_handler("mouseup", "vertex", function() {
+                    console.log("drag over");
+                    setup_interaction();
+                });
+            })
         };
 
         //edge tool interactions
@@ -104,7 +121,11 @@ $(document).ready(function(){
                 });
 
                 //if you click on nothing, clear the line and reset interactions
-                svg.on("click", clear_line);
+                svg.on("click", function() {
+                    if (!d3.event.defaultPrevented) {
+                        clear_line();
+                    };
+                });
                 console.log("bound");
                 console.log(graph.handlers);
                 console.log(graph.handlers.vertex);
@@ -141,6 +162,7 @@ $(document).ready(function(){
 
         svg.on("click", null);
         svg.on("mousemove", null);
+        svg.on("mouseup", null);
     }
 
     /* select a graph element. Used as a click handler, not for external use.
