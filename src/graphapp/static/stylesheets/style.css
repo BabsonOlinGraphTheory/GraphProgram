@@ -4,7 +4,26 @@
     min-height: 100%;
 }
 
-#viz {
+svg {
     border: solid;
     border-width: 1px;
+}
+
+#viz {
+    
+}
+
+#label {
+    width: 16px;
+    height: 16px;
+    font-size: 6pt;
+    text-align: center;
+    padding: 0px;
+    border: none;
+    margin: 0px;
+}
+
+.overlay {
+    fill: none;
+    pointer-events: all;
 }

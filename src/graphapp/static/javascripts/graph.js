@@ -169,6 +169,15 @@ function init_graph(svg) {
         });
     }
 
+    /* Try to complete a labeling of the graph.
+    **
+    */
+    graph.label = function(label, index) {
+        return $.post("/labeling/label", {v:index, label:label}, function(resp){
+            graph.labeling[index] = label;
+        });
+    }
+
     /* bind a handler to a graph element type
     **
     ** event_type    - the event on which to fire the handler

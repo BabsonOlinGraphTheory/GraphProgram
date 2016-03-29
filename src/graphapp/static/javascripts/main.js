@@ -5,15 +5,24 @@
 */
 
 //Priorities: Plan to have something to show in 2 weeks.
-//Label
-//Zoom
 //Undo-Redo
 //Save-Load
 
 
 // Create the graph and all the GUI elements and interaction handlers
 $(document).ready(function(){
-    var svg = d3.select("#viz");
+    var height = "600px";
+    var width = "600px";
+    var svg = d3.select("#viz").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+            .attr("id", "container")
+            .append("g");
+    svg.append("rect")
+        .attr("class", "overlay")
+        .attr("width", width)
+        .attr("height", height);
     graph = init_graph(svg);
     tool = $("#select-tool").attr("data-value");
 
@@ -38,10 +47,19 @@ $(document).ready(function(){
         //remove old interaction
         clear_interaction();
 
+        //zoom
+        d3.select("#container").call(d3.behavior.zoom().scaleExtent([1, Infinity].on("zoom", function() {
+            if (!d3.event.defaultPrevented) {
+                console.log("zooming");
+                svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+            }
+        }));
+
         //select tool interactions
         if (tool == $("#select-tool").attr("data-value")) {
             graph.bind_handler("click", "vertex", select);
             graph.bind_handler("click", "edge", select);
+     
         };
 
         //vertex tool interactions
@@ -134,6 +152,31 @@ $(document).ready(function(){
 
         //label tool interactions
         if (tool == $("#label-tool").attr("data-value")) {
+            graph.bind_handler("click", "vertex", function(v, i, ele) {
+                d3.select(ele).append("foreignObject")
+                    .attr("x", -8)
+                    .attr("y", -13)
+                    .append("xhtml:div")
+                        .html("<input id=label type=text>")
+                        .on("click", function() { d3.event.stopPropagation(); })
+                        .on("mouseup", function() { d3.event.stopPropagation(); })
+                        .on("mousedown", function() { d3.event.stopPropagation(); });
+                $("#label").focus()
+                .keyup(function(e) {
+                    if (e.keyCode == 13) {
+                        var label = $(this).val();
+                        if (label.match(/^\d+$/) !== null) {
+                            clear_interaction();
+                            graph.label(parseInt(label), i).done(function() {
+                                graph.draw();
+                                setup_interaction();
+                            });
+                        } else {
+                            alert("Label things using number only please!");
+                        };
+                    };
+                })
+            });
 
         };
 
@@ -163,6 +206,7 @@ $(document).ready(function(){
         svg.on("click", null);
         svg.on("mousemove", null);
         svg.on("mouseup", null);
+        svg.on(".zoom", null);
     }
 
     /* select a graph element. Used as a click handler, not for external use.
@@ -177,5 +221,19 @@ $(document).ready(function(){
         d.selected = true;
         graph.draw();
     };
+
+    /* download a file 
+    **
+    ** text - content of the file
+    ** name - name of the file
+    ** type - type of the file
+    */
+    var download = function(text, name, type) {
+        var a = document.createElement("a");
+        var file = new Blob([text], {type: type});
+        a.href = URL.createObjectURL(file);
+        a.download = name;
+        a.click();
+    }
 
 });
