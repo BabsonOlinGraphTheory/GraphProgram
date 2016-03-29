@@ -19,6 +19,7 @@ $(document).ready(function(){
         .append("g")
             .attr("id", "container")
             .append("g");
+    var container = d3.select("#container");
     svg.append("rect")
         .attr("class", "overlay")
         .attr("width", width)
@@ -47,19 +48,19 @@ $(document).ready(function(){
         //remove old interaction
         clear_interaction();
 
-        //zoom
-        d3.select("#container").call(d3.behavior.zoom().scaleExtent([1, Infinity].on("zoom", function() {
-            if (!d3.event.defaultPrevented) {
-                console.log("zooming");
-                svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-            }
-        }));
 
         //select tool interactions
         if (tool == $("#select-tool").attr("data-value")) {
             graph.bind_handler("click", "vertex", select);
             graph.bind_handler("click", "edge", select);
      
+            //zoom
+            container.call(d3.behavior.zoom().scaleExtent([1, Infinity]).on("zoom", function() {
+                if (!d3.event.defaultPrevented) {
+                    console.log("zooming");
+                    svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+                }
+            }));
         };
 
         //vertex tool interactions
@@ -186,6 +187,13 @@ $(document).ready(function(){
             console.log("deleting selected");
             graph.delete_selected().done(setup_interaction);
         });
+
+        //Complete labeling
+        $("#complete-labeling").click(function() {
+            clear_interaction();
+            console.log("completing labeling");
+            graph.complete_labeling(0, 10000).done(setup_interaction);
+        });
     };
 
     /* Removes up all the interactions for the user. Used when server is busy to enforce server truth.
@@ -202,11 +210,12 @@ $(document).ready(function(){
         graph.clear_handlers("mouseover","edge");
 
         $("#delete-selected").unbind();
+        $("#complete-labeling").unbind();
 
         svg.on("click", null);
         svg.on("mousemove", null);
         svg.on("mouseup", null);
-        svg.on(".zoom", null);
+        container.on(".zoom", null);
     }
 
     /* select a graph element. Used as a click handler, not for external use.
