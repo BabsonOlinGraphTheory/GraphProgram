@@ -20,7 +20,12 @@ labeling_blueprint = Blueprint("labeling", __name__)
 # ROUTES:
 @labeling_blueprint.route("/label", methods=['POST'])
 def label():
-    labeling.set_label(int(request.form["v"]), int(request.form["label"]))
+    label = request.form["label"]
+    if label == "":
+        label = None
+    else:
+        label = int(label)
+    labeling.set_label(int(request.form["v"]), label)
     return "label set"
 
 @labeling_blueprint.route("/set", methods=['POST'])

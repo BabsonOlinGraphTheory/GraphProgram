@@ -37,8 +37,10 @@ def new():
 @graph_blueprint.route("/new/from_adjacency_matrix", methods=['POST'])
 def new_from_adjacency_matrix():
     global graph;
-    graph = Graph.new_from_adjacency_matrix(request.form["adj"])
-    l.labeling.labels = [None] * graph.num_verts()
+    data = request.get_json()
+    print(data)
+    graph = Graph.new_from_adjacency_matrix(data["adj"])
+    l.labeling.labels = data["labeling"]
     return "new graph created"
 
 @graph_blueprint.route("/new/grid", methods=['POST'])

@@ -160,6 +160,7 @@ $(document).ready(function(){
                         .on("mousedown", function() { d3.event.stopPropagation(); });
                 $("#label").focus()
                 .keyup(function(e) {
+                    //13 is the enter key
                     if (e.keyCode == 13) {
                         var label = $(this).val();
                         if (label.match(/^\d+$/) !== null) {
@@ -171,6 +172,13 @@ $(document).ready(function(){
                         } else {
                             alert("Label things using number only please!");
                         };
+                    };
+                    //27 is the escape key, on escape unlabel the vertex
+                    if (e.keyCode == 27) {
+                        graph.label(null, i).done(function() {
+                            graph.draw();
+                            setup_interaction();
+                        });
                     };
                 })
             });
@@ -268,10 +276,11 @@ $(document).ready(function(){
     ** i - index of the graph element selected
     */
     var select = function(d, i) {
+        var selected = d.selected;
         if (!d3.event.shiftKey) {
             graph.clear_selection();
         }
-        d.selected = true;
+        d.selected = !selected;
         graph.draw();
     };
 
