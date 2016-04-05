@@ -6,7 +6,7 @@ Python 3
 This module contains the persistent graph object and the Flask graph Blueprint.
 """
 #Flask imports
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 
 # Graphlib imports
 from graphlib.graph import Graph
@@ -25,29 +25,34 @@ graph_blueprint = Blueprint("graph", __name__)
 @graph_blueprint.route("/new", methods=['POST'])
 def new():
     global graph;
-    graph = Graph(request.form.get("adj", []))
-    l.labeling = Labeling([None] * graph.num_verts())
+    data = request.get_json()
+    print(data)
+    adj = [set(l) for l in data["adj"]]
+    graph = Graph(adj)
+    print(graph.adjacency_list)
+    l.labeling.labels = data["labeling"]
+    print(l.labeling.labels)
     return "new graph created"
 
 @graph_blueprint.route("/new/from_adjacency_matrix", methods=['POST'])
 def new_from_adjacency_matrix():
     global graph;
     graph = Graph.new_from_adjacency_matrix(request.form["adj"])
-    l.labeling = Labeling(graph.num_verts())
+    l.labeling.labels = [None] * graph.num_verts()
     return "new graph created"
 
 @graph_blueprint.route("/new/grid", methods=['POST'])
 def new_grid():
     global graph;
     graph = Graph.new_grid(request.form["r"], request.form["c"], request.form["wrap"])
-    l.labeling = Labeling(graph.num_verts())
+    l.labeling.labels = [None] * graph.num_verts()
     return "new graph created"
 
 @graph_blueprint.route("/new/cycle", methods=['POST'])
 def new_cycle():
     global graph;
     graph = Graph.new_cycle(request.form["v"])
-    l.labeling = Labeling(graph.num_verts())
+    l.labeling.labels = [None] * graph.num_verts()
     return "new graph created"
 
 @graph_blueprint.route("/vertex/add", methods=['POST'])
@@ -88,7 +93,12 @@ def delete():
         l.labeling.remove_vertex(vert)
     print(graph.adjacency_list)
     return "vertices and edges deleted"
+
 @graph_blueprint.route("/connect", methods=['POST'])
 def connect_vertices():
     graph.connect(request.form["vs"])
     return "vertices connected"
+
+@graph_blueprint.route("/adj_mat", methods=['GET'])
+def get_adjacency_matrix():
+    return jsonify(graph.as_adjacency_matrix())

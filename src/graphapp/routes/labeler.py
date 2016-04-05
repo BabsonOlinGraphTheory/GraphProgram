@@ -30,6 +30,8 @@ def new_poly():
 
 @labeler_blueprint.route("/complete", methods=['POST'])
 def complete_labeling():
+    print(g.graph.adjacency_list)
+    print(l.labeling.labels)
     resp = {}
     first_check = labeler.confirm_labeling(g.graph, l.labeling)
     if not first_check[0]:

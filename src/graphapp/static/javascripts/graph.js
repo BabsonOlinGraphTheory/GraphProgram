@@ -14,11 +14,28 @@ function init_graph(svg) {
     // Vertices contain coordinate information, edges contain a pair of vertex numbers
     var graph = {};
 
-    graph.new = function(adj) {
-        return $.post("/graph/new", {adj:adj}, function(){
+    graph.new = function(adj, location_data, labeling) {
+        if (typeof(adj) != typeof([])) {
+            adj = [];
+        };
+
+        if (typeof(labeling) != typeof([])) {
+            labeling = [];
+            for (var i = 0; i < adj.length; i++) {
+                labeling.push(null);
+            };
+        };
+
+        return $.ajax({
+            method: "POST",
+            url:"/graph/new", 
+            data: JSON.stringify({ adj:adj, labeling:labeling }),
+            contentType: "application/json"
+        }).then(function() {
+            console.log("doin it");
             graph.vertices = [];
             graph.edges = [];
-            graph.labeling = [];
+            graph.labeling = labeling;
             graph.handlers = {
                 click: { vertex:[], edge:[] },
                 mouseup: { vertex:[], edge:[] },
@@ -26,8 +43,65 @@ function init_graph(svg) {
                 mousemove: { vertex:[], edge:[] },
                 mouseover: { vertex:[], edge:[] }
             };
+
+            //If the graph isn't empty, we need to do some work to sync the server and client
+            if (typeof(adj) == typeof([])) {
+                for (var i = 0; i < adj.length; i++) {
+                    graph.vertices.push({x:0, y:0, selected:false});
+                    //Randomize x and y unless we know it
+                    if (typeof(location_data) == typeof([])) {
+                        graph.vertices[i].x = location_data[i].x;
+                        graph.vertices[i].y = location_data[i].y;
+                    } else {
+                        graph.vertices[i].x = $(svg.node).width() * Math.random();
+                        graph.vertices[i].y = $(svg.node).height() * Math.random();
+                    };
+                    for (var j = i; j < adj.length; j++) {
+                        if (adj[i][j] > 0) {
+                            graph.edges.push({ v1:i, v2:j, selected:false });
+                        }
+                    };
+                };
+            };
+
         });
-    }
+    };
+
+    /* Get the adjacency matrix representation of the graph
+    **
+    */
+    graph.get_adjacency_matrix = function() {
+        var adj = [];
+        for (var i = 0; i < graph.vertices.length; i++) {
+            adj.push([]);
+            for (var j = 0; j < graph.vertices.length; j++) {
+                adj[i].push(0);
+            };
+        };
+        for (var i = 0; i < graph.edges.length; i++) {
+            adj[graph.edges[i].v1][graph.edges[i].v2] = 1;
+            adj[graph.edges[i].v2][graph.edges[i].v1] = 1;
+        };
+        return adj;
+    };
+
+    /* Get the x and y coordinates of the vertices
+    **
+    */
+    graph.get_location_data = function() {
+        var location_data = [];
+        for (var i = 0; i < graph.vertices.length; i++) {
+            location_data.push({ x:graph.vertices[i].x, y:graph.vertices[i].y });
+        };
+        return location_data;
+    };
+
+    /* Get labeling
+    **
+    */
+    graph.get_labeling = function() {
+        return graph.labeling;
+    };
 
     /* Add a vertex to the graph at the specified location
     **
@@ -148,7 +222,6 @@ function init_graph(svg) {
                 graph.clear_selection();
                 graph.draw();
             },
-            mimeType: "application/json",
             contentType: "application/json"
         });
     };
@@ -167,16 +240,34 @@ function init_graph(svg) {
                 graph.draw();
             }
         });
-    }
+    };
 
-    /* Try to complete a labeling of the graph.
+    /* Label a single vertex.
     **
+    ** label - value of the label
+    ** index - which vertext to label
     */
     graph.label = function(label, index) {
         return $.post("/labeling/label", {v:index, label:label}, function(resp){
             graph.labeling[index] = label;
         });
-    }
+    };
+
+    /* Label all vertices.
+    **
+    ** labeling - labeling to use
+    */
+    graph.set_labeling = function(labeling) {
+        return $.ajax({
+            method: "POST",
+            url: "/labeling/set", 
+            data: JSON.stringify({labeling:labeling}), 
+            complete: function(resp){
+                graph.labeling = labeling;
+            },
+            contentType: "application/json"
+        });
+    };
 
     /* bind a handler to a graph element type
     **
@@ -186,7 +277,7 @@ function init_graph(svg) {
     */
     graph.bind_handler = function(event_type, element_type, f) {
         graph.handlers[event_type][element_type].push(f);
-    }
+    };
 
     /* unbind all click handler for a graph element type
     **
@@ -196,7 +287,7 @@ function init_graph(svg) {
     */
     graph.clear_handlers = function(event_type, element_type) {
         graph.handlers[event_type][element_type] = [];
-    }
+    };
 
     /* clears the current selection
     **
@@ -208,7 +299,7 @@ function init_graph(svg) {
         for (var i = 0; i < graph.vertices.length; i++) {
             graph.vertices[i].selected = false;
         };
-    }
+    };
 
 
     /* Draw the graph
@@ -284,6 +375,7 @@ function init_graph(svg) {
 
         //Bind all types of handlers to vertices
         set_handlers(vertices, "vertex");
-    }
+    };
+
     return graph;
 }
