@@ -29,7 +29,9 @@ $(document).ready(function(){
         .attr("width", width)
         .attr("height", height);
     graph = init_graph(svg);
-    tool = $("#select-tool").attr("data-value");   
+    var tool = $("#select-tool").attr("data-value");
+
+    var undoRedo = new UndoRedo();
 
     /* Sets up all the interactions for the user.
     ** There is a pattern of use here where any time we post to the server

@@ -5,6 +5,7 @@
 	<title>BabsonOlinGraphProgram</title>
 	<script type="text/javascript", src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 	<script type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.js"></script>
+    <script type="text/javascript", src="{{ url_for('static', filename='javascripts/UndoRedo.js') }}"></script>
     <script type="text/javascript", src="{{ url_for('static', filename='javascripts/graph.js') }}"></script>
     <script type="text/javascript", src="{{ url_for('static', filename='javascripts/main.js') }}"></script>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -15,7 +16,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-2 col-xs-3", id="sidebar">
-                <div class="btn-group-vertical tools" role="group" aria-label="...", data-toggle="buttons">
+                <div class="btn-group-vertical tools" role="group" aria-label="..." data-toggle="buttons">
                     <label class="btn btn-default active" data-value="select" id="select-tool">
                         <input type="radio" name="tools" autocomplete="off"> Select
                     </label>
@@ -29,13 +30,15 @@
                         <input type="radio" name="tools" autocomplete="off"> Label
                     </label>
                 </div>
-                <button class="btn btn-default" id="delete-selected"> Delete Selected </button>
-                <button class="btn btn-default" id="complete-labeling"> Complete Labeling </button>
-                <button class="btn btn-default" id="save-image"> Download Image </button>
-                <button class="btn btn-default" id="save-data"> Download Graph </button>
-                <span class="btn btn-default btn-file"> Upload Graph 
-                    <input id="load-data" type="file">
-                </span>
+                <div class="btn-group-vertical" role="group" aria-label="...">
+                    <button class="btn btn-default" id="delete-selected"> Delete Selected </button>
+                    <button class="btn btn-default" id="complete-labeling"> Complete Labeling </button>
+                    <button class="btn btn-default" id="save-image"> Download Image </button>
+                    <button class="btn btn-default" id="save-data"> Download Graph </button>
+                    <span class="btn btn-default btn-file"> Upload Graph 
+                        <input id="load-data" type="file">
+                    </span>
+                </div>
             </div>
             <div class="col-md-10 col-xs-9" id="viz">
             </div>
