@@ -317,7 +317,7 @@ function init_graph(svg) {
                             d3.event.preventDefault();
                             //Call all the handlers
                             for (var j = 0; j < graph.handlers[event_type][element_type].length; j++) {
-                                graph.handlers[event_type].vertex[j](v, i, this);
+                                graph.handlers[event_type][element_type][j](v, i, this);
                             };
                         });
                     })(event_type);

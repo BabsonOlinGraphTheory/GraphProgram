@@ -6,7 +6,6 @@
 
 //Priorities: Plan to have something to show in 1 week.
 //deployment or install instructions
-//Save-Load, image and data
 //Snap to grid
 //Undo-Redo
 //copy paste
@@ -18,6 +17,7 @@ $(document).ready(function(){
     var height = "600px";
     var width = "600px";
     var svg = d3.select("#viz").append("svg")
+        .attr("id", "image")
         .attr("width", width)
         .attr("height", height)
         .append("g")
@@ -25,13 +25,31 @@ $(document).ready(function(){
             .append("g");
     var container = d3.select("#container");
     svg.append("rect")
-        .attr("class", "overlay")
+        .attr("fill", "white")
+        .attr("pointer-events", "all")
         .attr("width", width)
         .attr("height", height);
     graph = init_graph(svg);
     var tool = $("#select-tool").attr("data-value");
 
-    var undoRedo = new UndoRedo();
+    var undo_redo = new UndoRedo();
+
+    //data to keep zoom persistent
+    var zoom_data = {
+        dirty: false,
+        base_translate: [0, 0],
+        delta_translate: [0, 0],
+        base_scale: 1,
+        delta_scale: 1
+    };
+
+    var array_add = function(a, b) {
+        res = [];
+        for (var i = 0; i < a.length; i++) {
+            res.push(a[i] + b[i]);
+        };
+        return res
+    }
 
     /* Sets up all the interactions for the user.
     ** There is a pattern of use here where any time we post to the server
@@ -44,17 +62,35 @@ $(document).ready(function(){
         //remove old interaction
         clear_interaction();
 
+        //Keep track of which tool is selected
+        $(".tools .btn").click(function() {
+            tool = $(this).attr("data-value");
+            graph.clear_selection();
+            setup_interaction();
+        });
+
 
         //select tool interactions
         if (tool == $("#select-tool").attr("data-value")) {
             graph.bind_handler("click", "vertex", select);
             graph.bind_handler("click", "edge", select);
-     
+
+            if (!zoom_data.dirty) {
+                zoom_data.base_scale *= zoom_data.delta_scale;
+                zoom_data.base_translate = array_add(zoom_data.base_translate, zoom_data.delta_translate);
+                zoom_data.dirty = true;
+            };
+            console.log(zoom_data);
+
             //zoom
-            container.call(d3.behavior.zoom().scaleExtent([1, Infinity]).on("zoom", function() {
+            container.call(d3.behavior.zoom().on("zoom", function() {
                 if (!d3.event.defaultPrevented) {
                     console.log("zooming");
-                    svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+                    zoom_data.delta_translate = d3.event.translate;
+                    zoom_data.delta_scale = d3.event.scale;
+                    svg.attr("transform", "translate(" + array_add(zoom_data.base_translate, zoom_data.delta_translate) + ")scale(" + zoom_data.base_scale * zoom_data.delta_scale + ")");
+                    zoom_data.dirty = false;
+                    console.log(svg.attr("transform"));
                 }
             }));
         };
@@ -82,12 +118,12 @@ $(document).ready(function(){
                     v.y = y;
                     graph.draw();
                     // console.log("we in mousemove");
-                })
+                });
                 graph.bind_handler("mouseup", "vertex", function() {
                     console.log("drag over");
                     setup_interaction();
                 });
-            })
+            });
         };
 
         //edge tool interactions
@@ -145,6 +181,32 @@ $(document).ready(function(){
                 console.log(graph.handlers);
                 console.log(graph.handlers.vertex);
             });
+
+            //Edge drag handler
+            graph.bind_handler("mousedown", "edge", function(e, i, ele) {
+                var v1 = d3.event.shiftKey ? graph.vertices[e.v1] : graph.vertices[e.v2];
+                var v2 = d3.event.shiftKey ? graph.vertices[e.v2] : graph.vertices[e.v1];
+                var mag = cartesian_to_polar([v2.x - v1.x, v2.y -v1.y])[0];
+                svg.on("mousemove", function() {
+                    // console.log(v1, v2);
+                    var coords = d3.mouse(this);
+                    var x = coords[0] - v1.x;
+                    var y = coords[1] - v1.y;
+                    var angle = snap_to_angle(cartesian_to_polar([x,y])[1], 8);
+                    console.log(mag);
+                    var diff = polar_to_cartesian([mag, angle]);
+                    v2.x = v1.x + diff[0];
+                    v2.y = v1.y + diff[1];
+                    graph.draw();
+                    // console.log("we in mousemove");
+                    // console.log(angle);
+                    // console.log(diff);
+                })
+                svg.on("mouseup", function() {
+                    console.log("drag over");
+                    setup_interaction();
+                });
+            })
         };
 
         //label tool interactions
@@ -212,6 +274,12 @@ $(document).ready(function(){
             }), "graph.json", "application/json");
         });
 
+        //Save graph image locally
+        $("#save-image").click(function() {
+            var data = (new XMLSerializer()).serializeToString(d3.select("#image").node());
+            download([data], "graph.svg", "'image/svg+xml;charset=utf-8'");
+        });
+
         //Upload graph data
         $("#load-data").on("change", function() {
             console.log("on change");
@@ -258,6 +326,7 @@ $(document).ready(function(){
         graph.clear_handlers("mouseover","vertex");
         graph.clear_handlers("mouseover","edge");
 
+        $(".tools .btn").unbind();
         $("#delete-selected").unbind();
         $("#complete-labeling").unbind();
         $("#save-image").unbind();
@@ -267,6 +336,7 @@ $(document).ready(function(){
         svg.on("click", null);
         svg.on("mousemove", null);
         svg.on("mouseup", null);
+
         container.on(".zoom", null);
     }
 
@@ -298,13 +368,44 @@ $(document).ready(function(){
         a.click();
     }
 
+    /* Convert to polar 
+    **
+    ** v - vector in cartesian coordinates
+    */
+    var cartesian_to_polar = function(v) {
+        var x = v[0];
+        var y = v[1];
+        var mag = Math.sqrt(Math.pow(x,2) + Math.pow(y,2));
+        var phase = Math.atan2(y, x);
+        return [mag, phase];
+    }
+
+    /* Convert to cartesian 
+    **
+    ** v - vector in polar coordinates
+    */
+    var polar_to_cartesian = function(v) {
+        var mag = v[0];
+        var phase = v[1];
+        var x = mag * Math.cos(phase);
+        var y = mag * Math.sin(phase);
+        // console.log(mag, phase);
+        // console.log(x, y);
+        return [x, y];
+    }
+
+    /* Snap to the nearest angle  
+    **
+    ** angle  - angle to round
+    ** angles - number of evenly-spaced, snappable angles
+    */
+    var snap_to_angle = function(angle, angles) {
+        var round = Math.round(angle * angles / 2 / Math.PI);
+        // console.log(angle, angles);
+        console.log(round);
+        return round / angles * 2 * Math.PI;
+    }
+
     //Create the graph and setup interaction
     graph.new().done(setup_interaction).fail(function(){console.log("DARN")});
-
-    //Keep track of which tool is selected
-    $(".tools .btn").click(function() {
-        tool = $(this).attr("data-value");
-        graph.clear_selection();
-        setup_interaction();
-    }); 
 });
