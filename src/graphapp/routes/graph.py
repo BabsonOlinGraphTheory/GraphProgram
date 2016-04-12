@@ -72,13 +72,13 @@ def add_edge():
 
 @graph_blueprint.route("/vertex/remove", methods=['POST'])
 def remove_vertex():
-    graph.remove_vertex(request.form["v"])
-    l.labeling.remove_vertex(request.form["v"])
+    graph.remove_vertex(int(request.form["v"]))
+    l.labeling.remove_vertex(int(request.form["v"]))
     return "vertex removed"
 
 @graph_blueprint.route("/edge/remove", methods=['POST'])
 def remove_edge():
-    graph.remove_edge(request.form["v1"], request.form["v2"])
+    graph.remove_edge(int(request.form["v1"]), int(request.form["v2"]))
     return "edge removed"
 
 @graph_blueprint.route("/delete", methods=['POST'])

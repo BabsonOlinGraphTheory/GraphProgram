@@ -6,7 +6,6 @@
 
 //Priorities: Plan to have something to show in 1 week.
 //deployment or install instructions
-//Snap to grid
 //Undo-Redo
 //copy paste
 //basic graphs
@@ -32,7 +31,7 @@ $(document).ready(function(){
     graph = init_graph(svg);
     var tool = $("#select-tool").attr("data-value");
 
-    var undo_redo = new UndoRedo();
+    undo_redo = new UndoRedo();
 
     //data to keep zoom persistent
     var zoom_data = {
@@ -58,7 +57,6 @@ $(document).ready(function(){
     **
     */
     var setup_interaction = function() {
-        console.log("setup");
         //remove old interaction
         clear_interaction();
 
@@ -105,21 +103,36 @@ $(document).ready(function(){
                     var y = coords[1];
                     clear_interaction();
                     graph.add_vertex(x, y).done(setup_interaction);
+                    undo_redo.register(function(is_redo) {
+                        if (is_redo) {
+                            return graph.add_vertex(x, y);
+                        }
+                        return graph.remove_vertex(graph.vertices.length - 1);
+                    });
                 };
             });
 
             //Vertex drag handler
             graph.bind_handler("mousedown", "vertex", function(v, i, ele) {
+                var old_x = v.x;
+                var old_y = v.y;
+                var x = v.x;
+                var y = v.y;
                 svg.on("mousemove", function() {
                     var coords = d3.mouse(this);
-                    var x = coords[0];
-                    var y = coords[1];
+                    x = coords[0];
+                    y = coords[1];
                     v.x = x;
                     v.y = y;
                     graph.draw();
                     // console.log("we in mousemove");
                 });
                 graph.bind_handler("mouseup", "vertex", function() {
+                    undo_redo.register(function() {
+                        v.x = is_redo ? x : old_x;
+                        v.y = is_redo ? y : old_y;
+                        return $.Deffered().resolve();
+                    });
                     console.log("drag over");
                     setup_interaction();
                 });
@@ -295,7 +308,7 @@ $(document).ready(function(){
                 console.log(data);
                 clear_interaction();
                 graph.new(adjacency_matrix, location_data, labeling).done(function() {
-                    console.log(labeling)
+                    console.log(labeling);
                     console.log("Here");
                     console.log(graph.labeling);
                     graph.draw();
@@ -303,20 +316,30 @@ $(document).ready(function(){
                 });
             };
             fr.readAsText(file);
-            // console.log(adjacency_matrix);
-            // download(JSON.stringify({
-            //     adjacency_matrix: adjacency_matrix,
-            //     location_data: location_data,
-            //     labeling: labeling
-            // }), "graph.json", "application/json");
         });
+
+        //Undo/Redo
+        $("#undo").click(undo);
+        $("#redo").click(redo);
+        $(document).on("keyup", function(e) {
+            console.log("keyup")
+            if (e.keyCode == 90 && e.ctrlKey) {
+                if (e.shiftKey) {
+                    redo();
+                } else {
+                    undo();
+                }
+            } else if (e.keyCode == 89 && e.ctrlKey) {
+                redo();
+            }
+        });
+
     };
 
     /* Removes up all the interactions for the user. Used when server is busy to enforce server truth.
     **
     */
     var clear_interaction = function() {
-        console.log(graph);
         graph.clear_handlers("click", "vertex");
         graph.clear_handlers("click", "edge");
         graph.clear_handlers("mouseup", "vertex");
@@ -327,17 +350,15 @@ $(document).ready(function(){
         graph.clear_handlers("mouseover","edge");
 
         $(".tools .btn").unbind();
-        $("#delete-selected").unbind();
-        $("#complete-labeling").unbind();
-        $("#save-image").unbind();
-        $("#save-data").unbind();
-        $("#load-data").unbind();
+        $(".interactions .btn").unbind();
 
         svg.on("click", null);
         svg.on("mousemove", null);
         svg.on("mouseup", null);
 
         container.on(".zoom", null);
+
+        $(document).off("keyup");
     }
 
     /* select a graph element. Used as a click handler, not for external use.
@@ -404,6 +425,33 @@ $(document).ready(function(){
         // console.log(angle, angles);
         console.log(round);
         return round / angles * 2 * Math.PI;
+    }
+
+    /* Undo last registered action
+    **
+    */
+    var undo = function() {
+        if (undo_redo.hasUndo()) {
+            console.log("undo");
+            clear_interaction();
+            undo_redo.undo().done(function(){
+                graph.draw();
+                setup_interaction();
+            });
+        }
+    }
+
+    /* Redo last registered action
+    **
+    */
+    var redo = function() {
+        if (undo_redo.hasRedo()) {
+            clear_interaction();
+            undo_redo.redo().done(function(){
+                graph.draw();
+                setup_interaction();
+            });
+        }
     }
 
     //Create the graph and setup interaction

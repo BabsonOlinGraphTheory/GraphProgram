@@ -11,7 +11,7 @@
 function UndoRedo () {
     if (this instanceof UndoRedo) {
         this.stack = [];
-        this.position = -1;
+        this.position = 0;
     } else {
         return new UndoRedo();
     }
@@ -34,7 +34,7 @@ UndoRedo.prototype.undo = function() {
     if (!this.hasUndo()) {
         throw new Error("There is nothing to undo, please check hasUndo before calling undo!");
     };
-    return this.stack[this.position--](false);
+    return this.stack[--this.position](false);
 };
 
 
@@ -42,14 +42,14 @@ UndoRedo.prototype.undo = function() {
 **
 */
 UndoRedo.prototype.hasRedo = function() {
-    return this.position >= 0;
+    return this.position < this.stack.length;
 };
 
 /* Returns true if there is something to undo.
 **
 */
 UndoRedo.prototype.hasUndo = function() {
-    return this.position < this.stack.length
+    return this.position > 0;
 };
 
 
