@@ -184,11 +184,11 @@ $(document).ready(function(){
 
             //Edge drag handler
             graph.bind_handler("mousedown", "edge", function(e, i, ele) {
-                var v1 = d3.event.shiftKey ? graph.vertices[e.v1] : graph.vertices[e.v2];
-                var v2 = d3.event.shiftKey ? graph.vertices[e.v2] : graph.vertices[e.v1];
-                var mag = cartesian_to_polar([v2.x - v1.x, v2.y -v1.y])[0];
                 svg.on("mousemove", function() {
                     // console.log(v1, v2);
+                    var v1 = d3.event.shiftKey ? graph.vertices[e.v1] : graph.vertices[e.v2];
+                    var v2 = d3.event.shiftKey ? graph.vertices[e.v2] : graph.vertices[e.v1];
+                    var mag = cartesian_to_polar([v2.x - v1.x, v2.y -v1.y])[0];
                     var coords = d3.mouse(this);
                     var x = coords[0] - v1.x;
                     var y = coords[1] - v1.y;
