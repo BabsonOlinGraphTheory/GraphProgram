@@ -128,10 +128,10 @@ $(document).ready(function(){
                     // console.log("we in mousemove");
                 });
                 graph.bind_handler("mouseup", "vertex", function() {
-                    undo_redo.register(function() {
+                    undo_redo.register(function(is_redo) {
                         v.x = is_redo ? x : old_x;
                         v.y = is_redo ? y : old_y;
-                        return $.Deffered().resolve();
+                        return $.Deferred().resolve();
                     });
                     console.log("drag over");
                     setup_interaction();
@@ -322,7 +322,6 @@ $(document).ready(function(){
         $("#undo").click(undo);
         $("#redo").click(redo);
         $(document).on("keyup", function(e) {
-            console.log("keyup")
             if (e.keyCode == 90 && e.ctrlKey) {
                 if (e.shiftKey) {
                     redo();
