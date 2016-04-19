@@ -289,6 +289,25 @@ function init_graph(svg) {
         graph.handlers[event_type][element_type] = [];
     };
 
+    /* get the current selection
+    **
+    */
+    graph.get_selection = function() {
+        var selected_vertices = [];
+        var selected_edges = [];
+        for (var i = 0; i < graph.edges.length; i++) {
+            if(graph.edges[i].selected) {
+                selected_edges.push(i);
+            };
+        };
+        for (var i = 0; i < graph.vertices.length; i++) {
+            if(graph.vertices[i].selected) {
+                selected_vertices.push(i);
+            };
+        };
+        return { edges: selected_edges, vertices: selected_vertices };
+    };
+
     /* clears the current selection
     **
     */

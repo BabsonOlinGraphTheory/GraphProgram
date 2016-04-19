@@ -5,10 +5,11 @@
 */
 
 //Priorities: Plan to have something to show in 1 week.
-//deployment or install instructions
 //Undo-Redo
 //copy paste
 //basic graphs
+//deployment or install instructions
+//Cosmetics
 
 
 // Create the graph and all the GUI elements and interaction handlers
@@ -35,7 +36,7 @@ $(document).ready(function(){
 
     //data to keep zoom persistent
     var zoom_data = {
-        dirty: false,
+        dirty: true,
         base_translate: [0, 0],
         delta_translate: [0, 0],
         base_scale: 1,
@@ -63,7 +64,6 @@ $(document).ready(function(){
         //Keep track of which tool is selected
         $(".tools .btn").click(function() {
             tool = $(this).attr("data-value");
-            graph.clear_selection();
             setup_interaction();
         });
 
@@ -73,10 +73,10 @@ $(document).ready(function(){
             graph.bind_handler("click", "vertex", select);
             graph.bind_handler("click", "edge", select);
 
-            if (!zoom_data.dirty) {
+            if (zoom_data.dirty) {
                 zoom_data.base_scale *= zoom_data.delta_scale;
                 zoom_data.base_translate = array_add(zoom_data.base_translate, zoom_data.delta_translate);
-                zoom_data.dirty = true;
+                zoom_data.dirty = false;
             };
             console.log(zoom_data);
 
@@ -87,7 +87,7 @@ $(document).ready(function(){
                     zoom_data.delta_translate = d3.event.translate;
                     zoom_data.delta_scale = d3.event.scale;
                     svg.attr("transform", "translate(" + array_add(zoom_data.base_translate, zoom_data.delta_translate) + ")scale(" + zoom_data.base_scale * zoom_data.delta_scale + ")");
-                    zoom_data.dirty = false;
+                    zoom_data.dirty = true;
                     console.log(svg.attr("transform"));
                 }
             }));
@@ -177,6 +177,13 @@ $(document).ready(function(){
                     if(i != j) {
                         clear_interaction();
                         graph.add_edge(i, j).done(clear_line).fail(function(){console.log("UGH");});
+                        undo_redo.register(function(is_redo) {
+                            if (is_redo) {
+                                return graph.add_edge(i, j);
+                            } else {
+                                return graph.remove_edge(graph.edges.length - 1);
+                            }
+                        });
                     } else {
                         //we are done, clear the line
                         console.log("same vertex");
@@ -197,17 +204,28 @@ $(document).ready(function(){
 
             //Edge drag handler
             graph.bind_handler("mousedown", "edge", function(e, i, ele) {
+                var coords = d3.mouse(ele);
+
+                //Store these for undo
+                var x1 = graph.vertices[e.v1].x;
+                var x2 = graph.vertices[e.v2].x;
+                var y1 = graph.vertices[e.v1].y;
+                var y2 = graph.vertices[e.v2].y;
+                var diff = [0,0];
+
+                //Whether to rotate around v1
+                var fix_v1 = distance(coords, [x1, y1]) < distance(coords, [x2, y2]);
+                var v1 = fix_v1 ? graph.vertices[e.v2] : graph.vertices[e.v1];
+                var v2 = fix_v1 ? graph.vertices[e.v1] : graph.vertices[e.v2];
                 svg.on("mousemove", function() {
                     // console.log(v1, v2);
-                    var v1 = d3.event.shiftKey ? graph.vertices[e.v1] : graph.vertices[e.v2];
-                    var v2 = d3.event.shiftKey ? graph.vertices[e.v2] : graph.vertices[e.v1];
-                    var mag = cartesian_to_polar([v2.x - v1.x, v2.y -v1.y])[0];
                     var coords = d3.mouse(this);
+                    var mag = cartesian_to_polar([v2.x - v1.x, v2.y -v1.y])[0];
                     var x = coords[0] - v1.x;
                     var y = coords[1] - v1.y;
                     var angle = snap_to_angle(cartesian_to_polar([x,y])[1], 8);
                     console.log(mag);
-                    var diff = polar_to_cartesian([mag, angle]);
+                    diff = polar_to_cartesian([mag, angle]);
                     v2.x = v1.x + diff[0];
                     v2.y = v1.y + diff[1];
                     graph.draw();
@@ -217,6 +235,20 @@ $(document).ready(function(){
                 })
                 svg.on("mouseup", function() {
                     console.log("drag over");
+                    undo_redo.register(function(is_redo) {
+                        var v1 = fix_v1 ? graph.vertices[e.v2] : graph.vertices[e.v1];
+                        var v2 = fix_v1 ? graph.vertices[e.v1] : graph.vertices[e.v2];
+                        if (is_redo) {
+                            v2.x = v1.x + diff[0];
+                            v2.y = v1.y + diff[1];
+                            console.log(v1);
+                            console.log(v2);
+                        } else {
+                            v2.x = x2;
+                            v2.y = y2;
+                        }
+                        return $.Deferred().resolve();
+                    });
                     setup_interaction();
                 });
             })
@@ -350,6 +382,7 @@ $(document).ready(function(){
 
         $(".tools .btn").unbind();
         $(".interactions .btn").unbind();
+        $("#load-data").on("change", null);
 
         svg.on("click", null);
         svg.on("mousemove", null);
@@ -367,11 +400,24 @@ $(document).ready(function(){
     */
     var select = function(d, i) {
         var selected = d.selected;
+        var old_selection = graph.get_selection();
         if (!d3.event.shiftKey) {
             graph.clear_selection();
         }
         d.selected = !selected;
+        var new_selection = graph.get_selection();
         graph.draw();
+        undo_redo.register(function(is_redo) {
+            var selection = is_redo ? new_selection : old_selection;
+            graph.clear_selection();
+            for (var i = 0; i < selection.edges.length; i++) {
+                graph.edges[selection.edges[i]].selected = true;
+            }
+            for (var i = 0; i < selection.vertices.length; i++) {
+                graph.vertices[selection.vertices[i]].selected = true;
+            }
+            return $.Deferred().resolve();
+        })
     };
 
     /* download a file 
@@ -386,6 +432,15 @@ $(document).ready(function(){
         a.href = URL.createObjectURL(file);
         a.download = name;
         a.click();
+    }
+
+    /* Get distance between points
+    **
+    ** v1 - vector in cartesian coordinates
+    ** v2 - vector in cartesian coordinates
+    */
+    var distance = function(v1, v2) {
+        return Math.sqrt(Math.pow(v1[0]-v2[0],2),Math.pow(v1[1]-v2[1],2));
     }
 
     /* Convert to polar 
