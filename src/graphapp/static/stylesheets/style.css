@@ -20,6 +20,19 @@ svg {
     margin: 0px;
 }
 
+.inline {
+    display: inline;
+}
+
+.label-bound {
+    width: 2.2em;
+    text-align: center;
+}
+
+.label-bound-wrapper {
+    padding: 0px;
+}
+
 .btn-file {
     position: relative;
     overflow: hidden;

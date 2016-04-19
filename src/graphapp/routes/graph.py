@@ -88,6 +88,7 @@ def delete():
     edges = data["es"]
     print(verts)
     print(edges)
+    print(graph.adjacency_list)
     for edge in edges:
         graph.remove_edge(edge["v1"], edge["v2"]);
     for vert in verts:

@@ -267,26 +267,42 @@ $(document).ready(function(){
                         .on("mousedown", function() { d3.event.stopPropagation(); });
                 $("#label").focus()
                 .keyup(function(e) {
+                    var old_label = graph.labeling[i];
+                    var submitting = false;
+                    var label = $(this).val();
                     //13 is the enter key
                     if (e.keyCode == 13) {
-                        var label = $(this).val();
+                        if (label == "") {
+                            label = null;
+                            submitting = true;
+                        }
                         if (label.match(/^\d+$/) !== null) {
-                            clear_interaction();
-                            graph.label(parseInt(label), i).done(function() {
-                                graph.draw();
-                                setup_interaction();
-                            });
+                            label = parseInt(label);
+                            submitting = true
                         } else {
                             alert("Label things using number only please!");
                         };
                     };
                     //27 is the escape key, on escape unlabel the vertex
                     if (e.keyCode == 27) {
-                        graph.label(null, i).done(function() {
+                        label = null;
+                        submitting = true;
+                    };
+                    if (submitting) {
+                        clear_interaction();
+                        graph.label(label, i).done(function() {
                             graph.draw();
                             setup_interaction();
                         });
-                    };
+                        undo_redo.register(function(is_redo) {
+                            var redo_label = is_redo ? label : old_label;
+                            return graph.label(redo_label, i);
+                        });
+                    }
+                })
+                //When clicking away, cancel the labeling, leaving the old one in place
+                .on("focusout", function() {
+                    $(this).remove();
                 })
             });
 
@@ -296,14 +312,35 @@ $(document).ready(function(){
         $("#delete-selected").click(function() {
             clear_interaction();
             console.log("deleting selected");
+            var selected = graph.get_selection();
+            var adjacency_matrix = graph.get_adjacency_matrix();
+            var location_data = graph.get_location_data();
+            var labeling = graph.get_labeling().slice(); //slice to make a copy
             graph.delete_selected().done(setup_interaction).fail(function(){console.log("DARN")});
+            undo_redo.register(function(is_redo) {
+                if (is_redo) {
+                    return graph.delete_selected();
+                } else {
+                    console.log(labeling);
+                    return graph.new(adjacency_matrix, location_data, labeling.slice()).then(function() {
+                        select_all(selected);
+                    });
+                }
+            });
         });
 
         //Complete labeling
-        $("#complete-labeling").click(function() {
-            clear_interaction();
-            console.log("completing labeling");
-            graph.complete_labeling(0, 30).done(setup_interaction);
+        $(".label-bound-wrapper").click(function(event) {
+            event.preventDefault();
+        });
+        $("#complete-labeling").click(function(event) {
+            if (!event.isDefaultPrevented()) {
+                clear_interaction();
+                console.log("completing labeling");
+                var min = $("#label-min").val();
+                var max = $("#label-max").val();
+                graph.complete_labeling(min, max).done(setup_interaction);
+            }
         });
 
         //Save graph data locally
@@ -408,17 +445,26 @@ $(document).ready(function(){
         var new_selection = graph.get_selection();
         graph.draw();
         undo_redo.register(function(is_redo) {
-            var selection = is_redo ? new_selection : old_selection;
-            graph.clear_selection();
-            for (var i = 0; i < selection.edges.length; i++) {
-                graph.edges[selection.edges[i]].selected = true;
-            }
-            for (var i = 0; i < selection.vertices.length; i++) {
-                graph.vertices[selection.vertices[i]].selected = true;
-            }
+            select_all(is_redo ? new_selection : old_selection);
             return $.Deferred().resolve();
         })
     };
+
+    /* select all graph elements in selection and deselect others
+    **
+    ** selection - javascript ovject with:
+    **     edges    - list of edge indices
+    **     vertices - list of vertex indices
+    */
+    var select_all = function(selection) {
+        graph.clear_selection();
+        for (var i = 0; i < selection.edges.length; i++) {
+            graph.edges[selection.edges[i]].selected = true;
+        }
+        for (var i = 0; i < selection.vertices.length; i++) {
+            graph.vertices[selection.vertices[i]].selected = true;
+        }
+    }
 
     /* download a file 
     **
@@ -500,6 +546,7 @@ $(document).ready(function(){
     */
     var redo = function() {
         if (undo_redo.hasRedo()) {
+            console.log("redo");
             clear_interaction();
             undo_redo.redo().done(function(){
                 graph.draw();

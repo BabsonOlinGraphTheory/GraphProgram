@@ -14,7 +14,15 @@ function init_graph(svg) {
     // Vertices contain coordinate information, edges contain a pair of vertex numbers
     var graph = {};
 
+    /* Function to initialize a graph
+    **
+    ** adj           - optional adjacency list of graph to initialize, otherwise empty
+    ** location_data - list of {x, y} objects to indicate where to put vertices, same length as adj
+    ** labeling      - optional list of existing labels in the graph (nulls for empty), same length as adj
+    **
+    */
     graph.new = function(adj, location_data, labeling) {
+        //If we didn't pass in adjacency matrix
         if (typeof(adj) != typeof([])) {
             adj = [];
         };
@@ -45,25 +53,22 @@ function init_graph(svg) {
             };
 
             //If the graph isn't empty, we need to do some work to sync the server and client
-            if (typeof(adj) == typeof([])) {
-                for (var i = 0; i < adj.length; i++) {
-                    graph.vertices.push({x:0, y:0, selected:false});
-                    //Randomize x and y unless we know it
-                    if (typeof(location_data) == typeof([])) {
-                        graph.vertices[i].x = location_data[i].x;
-                        graph.vertices[i].y = location_data[i].y;
-                    } else {
-                        graph.vertices[i].x = $(svg.node).width() * Math.random();
-                        graph.vertices[i].y = $(svg.node).height() * Math.random();
-                    };
-                    for (var j = i; j < adj.length; j++) {
-                        if (adj[i][j] > 0) {
-                            graph.edges.push({ v1:i, v2:j, selected:false });
-                        }
-                    };
+            for (var i = 0; i < adj.length; i++) {
+                graph.vertices.push({x:0, y:0, selected:false});
+                //Randomize x and y unless we know it
+                if (typeof(location_data) == typeof([])) {
+                    graph.vertices[i].x = location_data[i].x;
+                    graph.vertices[i].y = location_data[i].y;
+                } else {
+                    graph.vertices[i].x = $(svg.node).width() * Math.random();
+                    graph.vertices[i].y = $(svg.node).height() * Math.random();
+                };
+                for (var j = i; j < adj.length; j++) {
+                    if (adj[i][j] > 0) {
+                        graph.edges.push({ v1:i, v2:j, selected:false });
+                    }
                 };
             };
-
         });
     };
 

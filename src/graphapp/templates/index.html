@@ -32,7 +32,17 @@
                 </div>
                 <div class="btn-group-vertical interactions" role="group" aria-label="...">
                     <button class="btn btn-default" id="delete-selected"> Delete Selected </button>
-                    <button class="btn btn-default" id="complete-labeling"> Complete Labeling </button>
+                    <button class="btn btn-default inline" id="complete-labeling">
+                        <div class="input-group">
+                            <span class="label-bound-wrapper">
+                                <input type="number" class="label-bound" id="label-min" min="0" max="99" value="0"> </input>
+                            </span>
+                            <span class="middle-button"> Complete Labeling </span>
+                            <span class="label-bound-wrapper">
+                                <input type="number" class="label-bound" id="label-max" min="0" max="99" value="99"> </input>
+                            </span>
+                        </div>
+                    </button>
                     <button class="btn btn-default" id="save-image"> Download Image </button>
                     <button class="btn btn-default" id="save-data"> Download Graph </button>
                     <span class="btn btn-default btn-file"> Upload Graph 
