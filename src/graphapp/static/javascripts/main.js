@@ -244,8 +244,10 @@ $(document).ready(function(){
                             console.log(v1);
                             console.log(v2);
                         } else {
-                            v2.x = x2;
-                            v2.y = y2;
+                            graph.vertices[e.v1].x = x1;
+                            graph.vertices[e.v1].y = y1;
+                            graph.vertices[e.v2].x = x2;
+                            graph.vertices[e.v2].y = y2;
                         }
                         return $.Deferred().resolve();
                     });
@@ -339,7 +341,14 @@ $(document).ready(function(){
                 console.log("completing labeling");
                 var min = $("#label-min").val();
                 var max = $("#label-max").val();
+                var old_labeling = graph.get_labeling().slice();
                 graph.complete_labeling(min, max).done(setup_interaction);
+                var new_labeling = graph.get_labeling().slice();
+                undo_redo.register(function(is_redo) {
+                    var labeling = is_redo ? new_labeling : old_labeling;
+                    console.log(labeling);
+                    return graph.set_labeling(labeling.slice());
+                })
             }
         });
 

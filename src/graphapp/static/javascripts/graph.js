@@ -36,7 +36,7 @@ function init_graph(svg) {
 
         return $.ajax({
             method: "POST",
-            url:"/graph/new/from_adjacency_matrix", 
+            url: "/graph/new/from_adjacency_matrix", 
             data: JSON.stringify({ adj:adj, labeling:labeling }),
             contentType: "application/json"
         }).then(function() {
