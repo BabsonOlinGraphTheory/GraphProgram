@@ -192,7 +192,7 @@ function init_graph(svg) {
     /* Delete all selected graph elements
     **
     */
-    graph.delete_selected = function () {
+    graph.delete_selected = function() {
         console.log("deleting things");
         edges = [];
         verts = [];
@@ -230,6 +230,35 @@ function init_graph(svg) {
             contentType: "application/json"
         });
     };
+
+    /* Add many graph elements with one call to the server
+    **
+    ** vertices - list of vertices to add in {x: float, y: float} form
+    ** edges    - list of edges to add in {v1: int, v2: int} form
+    ** labels   - list of labels for new vertices, one label per vertex to add
+    **
+    */
+    graph.add_many = function(vertices, edges, labels) {
+        return $.ajax({
+            method: "POST",
+            url: "/graph/add", 
+            data: JSON.stringify({es:edges, ls:labels}), 
+            complete: function(success) {
+                console.log("added on server");
+                for (var e = 0; e < edges.length; e++) {
+                    graph.edges.push({v1:edges[e].v1, v2:edges[e].v2, selected:false});
+                };
+                for (var v = 0; v < vertices.length; v++) {
+                    graph.vertices.push({x:vertices[v].x, y:vertices[v].y, selected:false});
+                };
+                for (var l = 0; l < labels.length; l++) {
+                    graph.labeling.push(labels[l]);
+                };
+                graph.draw();
+            },
+            contentType: "application/json"
+        });
+    }
 
     /* Try to complete a labeling of the graph.
     **
@@ -269,6 +298,7 @@ function init_graph(svg) {
             data: JSON.stringify({labeling:labeling}), 
             complete: function(resp){
                 graph.labeling = labeling;
+                graph.draw();
             },
             contentType: "application/json"
         });

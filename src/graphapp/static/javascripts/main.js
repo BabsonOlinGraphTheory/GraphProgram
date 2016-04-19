@@ -5,7 +5,6 @@
 */
 
 //Priorities: Plan to have something to show in 1 week.
-//Undo-Redo
 //copy paste
 //basic graphs
 //deployment or install instructions
@@ -43,13 +42,8 @@ $(document).ready(function(){
         delta_scale: 1
     };
 
-    var array_add = function(a, b) {
-        res = [];
-        for (var i = 0; i < a.length; i++) {
-            res.push(a[i] + b[i]);
-        };
-        return res
-    }
+    //clipboard for copy paste
+    var clipboard = {};
 
     /* Sets up all the interactions for the user.
     ** There is a pattern of use here where any time we post to the server
@@ -78,7 +72,6 @@ $(document).ready(function(){
                 zoom_data.base_translate = array_add(zoom_data.base_translate, zoom_data.delta_translate);
                 zoom_data.dirty = false;
             };
-            console.log(zoom_data);
 
             //zoom
             container.call(d3.behavior.zoom().on("zoom", function() {
@@ -129,8 +122,8 @@ $(document).ready(function(){
                 });
                 graph.bind_handler("mouseup", "vertex", function() {
                     undo_redo.register(function(is_redo) {
-                        v.x = is_redo ? x : old_x;
-                        v.y = is_redo ? y : old_y;
+                        graph.vertices[i].x = is_redo ? x : old_x;
+                        graph.vertices[i].y = is_redo ? y : old_y;
                         return $.Deferred().resolve();
                     });
                     console.log("drag over");
@@ -318,7 +311,7 @@ $(document).ready(function(){
             var adjacency_matrix = graph.get_adjacency_matrix();
             var location_data = graph.get_location_data();
             var labeling = graph.get_labeling().slice(); //slice to make a copy
-            graph.delete_selected().done(setup_interaction).fail(function(){console.log("DARN")});
+            graph.delete_selected().done(setup_interaction);
             undo_redo.register(function(is_redo) {
                 if (is_redo) {
                     return graph.delete_selected();
@@ -342,13 +335,15 @@ $(document).ready(function(){
                 var min = $("#label-min").val();
                 var max = $("#label-max").val();
                 var old_labeling = graph.get_labeling().slice();
-                graph.complete_labeling(min, max).done(setup_interaction);
-                var new_labeling = graph.get_labeling().slice();
-                undo_redo.register(function(is_redo) {
-                    var labeling = is_redo ? new_labeling : old_labeling;
-                    console.log(labeling);
-                    return graph.set_labeling(labeling.slice());
-                })
+                graph.complete_labeling(min, max).done(function() {
+                    var new_labeling = graph.get_labeling().slice();
+                    undo_redo.register(function(is_redo) {
+                        var labeling = is_redo ? new_labeling : old_labeling;
+                        console.log(labeling);
+                        return graph.set_labeling(labeling.slice());
+                    })
+                    setup_interaction();
+                });
             }
         });
 
@@ -410,7 +405,16 @@ $(document).ready(function(){
                 redo();
             }
         });
-
+        //Copy/Paste
+        $("#copy").click(copy);
+        $("#paste").click(paste);
+        $(document).on("keyup", function(e) {
+            if (e.keyCode == 67 && e.ctrlKey) {
+                copy();
+            } else if (e.keyCode == 86 && e.ctrlKey) {
+                paste();
+            }
+        });
     };
 
     /* Removes up all the interactions for the user. Used when server is busy to enforce server truth.
@@ -536,6 +540,21 @@ $(document).ready(function(){
         return round / angles * 2 * Math.PI;
     }
 
+    /* Add two arrays elementwise
+    **
+    ** a - first array
+    ** b - second array, should be same length
+    **
+    ** RETURNS elementwise sum of the arrays
+    */
+    var array_add = function(a, b) {
+        res = [];
+        for (var i = 0; i < a.length; i++) {
+            res.push(a[i] + b[i]);
+        };
+        return res
+    }
+
     /* Undo last registered action
     **
     */
@@ -562,6 +581,72 @@ $(document).ready(function(){
                 setup_interaction();
             });
         }
+    }
+
+    /* Copy selection to clipboard
+    **
+    */
+    var copy = function() {
+        var selection = graph.get_selection();
+        var vertices = [];
+        var edges = [];
+        var labels = []
+        for (var i = 0; i < selection.vertices.length; i++) {
+            var v = graph.vertices[selection.vertices[i]];
+            vertices.push({x: v.x, y: v.y})
+            labels.push(graph.labeling[selection.vertices[i]]);
+        }
+        for (var i = 0; i < selection.edges.length; i++) {
+            var e = graph.edges[selection.edges[i]];
+            // Behavior is to ignore edges if we didn't have both vertices selected
+            // to avoid trying to paste edges to vertices that don't exist.
+            // We also need to update vertex indices in edges to reflect that we are making a copy.
+            var v1 = selection.vertices.indexOf(e.v1);
+            var v2 = selection.vertices.indexOf(e.v2);
+            if (v1 >= 0 && v2 >= 0) {
+                edges.push({v1: v1, v2: v2});
+            }
+        }
+        clipboard = {edges: edges, vertices: vertices, labels: labels};
+    }
+
+    /* Paste a copy of the clipboard
+    **
+    */
+    var paste = function() {
+        var num_verts = graph.vertices.length;
+
+        //Deep copy for redo
+        var vertices = [];
+        var edges = [];
+        var labels = []
+        for (var i = 0; i < clipboard.vertices.length; i++) {
+            var v = clipboard.vertices[i];
+            vertices.push({x: v.x, y: v.y})
+            labels.push(clipboard.labels[i]);
+        }
+        for (var i = 0; i < clipboard.edges.length; i++) {
+            var e = clipboard.edges[i];
+            //Have the new edges correspond to the new vertices.
+            edges.push({v1: e.v1 + num_verts, v2: e.v2 + num_verts});
+        }
+
+        var selected = graph.get_selection();
+        var adjacency_matrix = graph.get_adjacency_matrix();
+        var location_data = graph.get_location_data();
+        var labeling = graph.get_labeling().slice(); //slice to make a copy
+
+        clear_interaction();
+        graph.add_many(vertices, edges, labels).done(setup_interaction);
+        undo_redo.register(function(is_redo) {
+            if (is_redo) {
+                return graph.add_many(vertices, edges, labels);
+            } else {
+                return graph.new(adjacency_matrix, location_data, labeling.slice()).then(function() {
+                    select_all(selected);
+                });
+            }
+        });
     }
 
     //Create the graph and setup interaction

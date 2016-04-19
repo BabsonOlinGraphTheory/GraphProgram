@@ -97,6 +97,26 @@ def delete():
     print(graph.adjacency_list)
     return "vertices and edges deleted"
 
+@graph_blueprint.route("/add", methods=['POST'])
+def add():
+    data = request.get_json()
+    edges = data["es"]
+    labels = data["ls"]
+    print(labels)
+    print(edges)
+    print(graph.adjacency_list)
+    print(l.labeling.labels)
+    start = graph.num_verts()
+    for i in range(len(labels)):
+        graph.add_vertex()
+        l.labeling.add_vertex()
+        l.labeling.set_label(start + i, labels[i])
+    for edge in edges:
+        graph.add_edge(edge["v1"], edge["v2"]);
+
+    print(graph.adjacency_list)
+    return "vertices and edges added"
+
 @graph_blueprint.route("/connect", methods=['POST'])
 def connect_vertices():
     graph.connect(request.form["vs"])
