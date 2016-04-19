@@ -5,7 +5,6 @@
 */
 
 //Priorities: Plan to have something to show in 1 week.
-//copy paste
 //basic graphs
 //deployment or install instructions
 //Cosmetics
@@ -13,12 +12,12 @@
 
 // Create the graph and all the GUI elements and interaction handlers
 $(document).ready(function(){
-    var height = "600px";
-    var width = "600px";
+    var height = window.innerHeight;
+    var width = window.innerWidth/2;
     var svg = d3.select("#viz").append("svg")
         .attr("id", "image")
-        .attr("width", width)
-        .attr("height", height)
+        .attr("width", width + "px")
+        .attr("height", height + "px")
         .append("g")
             .attr("id", "container")
             .append("g");
@@ -26,8 +25,10 @@ $(document).ready(function(){
     svg.append("rect")
         .attr("fill", "white")
         .attr("pointer-events", "all")
-        .attr("width", width)
-        .attr("height", height);
+        .attr("width", width * 16 + "px")
+        .attr("height", height * 16 + "px")
+        .attr("x", width * -8 + "px")
+        .attr("y", height * -8 + "px");
     graph = init_graph(svg);
     var tool = $("#select-tool").attr("data-value");
 
