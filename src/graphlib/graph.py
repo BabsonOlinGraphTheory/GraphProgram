@@ -127,7 +127,7 @@ class Graph:
             for j in range(c):
                 connections = []
                 connections.extend([vert for vert in [i+j-1, i+j+1] if i<=vert<i+c]) #add horizontal connections
-                connections.extend([vert for vert in [i+j-c, i+j+c] if 0<=vert<r*c]) #add horizontal connections
+                connections.extend([vert for vert in [i+j-c, i+j+c] if 0<=vert<r*c]) #add vertical connections
                 adj.append(set(connections))
         if wrap == "cylindrical" or wrap == "toroidal":
             if c>2:

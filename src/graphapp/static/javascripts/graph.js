@@ -10,9 +10,9 @@
 **
 ** RETURNS: object representing the graph.
 */
-function init_graph(svg) {
+function init_graph(svg, width, height) {
     // Vertices contain coordinate information, edges contain a pair of vertex numbers
-    var graph = {};
+    var graph = {width: width, height: height};
 
     /* Function to initialize a graph
     **
@@ -69,8 +69,45 @@ function init_graph(svg) {
                     }
                 };
             };
+            graph.draw();
         });
     };
+
+    /* New grid
+    **
+    ** rows    - number of rows
+    ** columns - number of columns
+    */
+    graph.new_grid = function(rows, columns) {
+        // var adj = new Array(rows * columns).fill(new Array(rows * columns).fill(0));
+        var adj = []
+        for (var i = 0; i < rows * columns; i++) {
+            adj.push(new Array(rows * columns).fill(0));
+        }
+        location_data = [];
+        var step = Math.max(30, Math.min((graph.width) / rows, (graph.height) / columns));
+        var x = step/2;
+        var y = step/2;
+        for (var r = 0; r < rows; r++) {
+            for (var c = 0; c < columns; c++) {
+                var i = r * columns + c;
+                if (c > 0) {
+                    adj[i-1][i] = 1;
+                    adj[i][i-1] = 1;
+                }
+                if (r > 0) {
+                    adj[i-columns][i] = 1;
+                    adj[i][i-columns] = 1;
+                }
+                location_data.push({x:x, y:y});
+                y += step;
+            }
+            x += step;
+            y = step/2;
+        }
+        console.log(step);
+        return graph.new(adj, location_data);
+    }
 
     /* Get the adjacency matrix representation of the graph
     **
