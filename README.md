@@ -1,4 +1,4 @@
 GraphProgram
 ============
 
-Main Graph Theory Program
+Make sure you have the src directory in your pythonpath before running things!
