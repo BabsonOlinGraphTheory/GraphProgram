@@ -300,8 +300,8 @@ function init_graph(svg, width, height) {
     /* Try to complete a labeling of the graph.
     **
     */
-    graph.complete_labeling = function(min, max) {
-        return $.post("/labeler/complete", {min:min, max:max}, function(resp){
+    graph.complete_labeling = function(min, max, constraints) {
+        return $.post("/labeler/complete", {min:min, max:max, constraints:constraints}, function(resp){
             if (resp.problems) {
                 alert(resp.err + resp.problems);
             } else if (resp.err) {

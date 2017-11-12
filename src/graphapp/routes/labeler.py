@@ -15,21 +15,27 @@ from graphlib.labeler import LPolynomialLabeler
 import graphapp.routes.labeling as l
 import graphapp.routes.graph as g
 
+# regex
+import re
+
 # EXPORTS:
 labeler = LPolynomialLabeler()
 labeler_blueprint = Blueprint("labeler", __name__)
 
 ###############################################################################
 
-# ROUTES:
-@labeler_blueprint.route("/new/LPoly", methods=['POST'])
-def new_poly():
-    global labeler;
-    labeler = LPolynomialLabeler(request.form["constraints"])
-    return "new labeler created"
-
 @labeler_blueprint.route("/complete", methods=['POST'])
 def complete_labeling():
+    global labeler;
+    print("labeler")
+
+    c = request.form["constraints"]
+    constraints = re.split("[\\s]*,[\\s]*", c)
+    print(constraints)
+    constraints = [int(x) for x in constraints]
+    labeler = LPolynomialLabeler(constraints)
+
+    print(labeler._constraints)
     print(g.graph.adjacency_list)
     print(l.labeling.labels)
     resp = {}
@@ -38,11 +44,11 @@ def complete_labeling():
         resp["err"] = "Current labeling already invalid"
         resp["problems"] = first_check[1]
     else:
-        new_labeling = labeler.complete_labeling(g.graph, l.labeling, int(request.form["min"]), int(request.form["max"]))
-        print(new_labeling.labels)
-        if new_labeling:
+        try:
+            new_labeling = labeler.complete_labeling(g.graph, l.labeling, int(request.form["min"]), int(request.form["max"]))
+            print(new_labeling.labels)
             l.labeling = new_labeling
-        else:
+        except:
             resp["err"] = "No valid labeling found"
     resp["labels"] = l.labeling.labels
     print(resp)

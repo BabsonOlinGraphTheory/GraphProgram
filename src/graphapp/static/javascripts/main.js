@@ -650,8 +650,9 @@ $(document).ready(function(){
             console.log("completing labeling");
             var min = $("#label-min").val();
             var max = $("#label-max").val();
+            var constraints = $("#constraints").val();
             var old_labeling = graph.get_labeling().slice();
-            graph.complete_labeling(min, max).done(function() {
+            graph.complete_labeling(min, max, constraints).done(function() {
                 var new_labeling = graph.get_labeling().slice();
                 undo_redo.register(function(is_redo) {
                     var labeling = is_redo ? new_labeling : old_labeling;
