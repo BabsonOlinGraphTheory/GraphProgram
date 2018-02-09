@@ -34,7 +34,8 @@ def exhaustive_test_until_stable_graph():
     plt.show()
 
 def hist_one_size(times):
-    >>> from forced_graph import exhaustively_test_until_stable
+    pass
+    # >>> from forced_graph import exhaustively_test_until_stable
 # >>> times = exhaustively_test_until_stable()
 # >>> 
 # >>> from collections import Counter
