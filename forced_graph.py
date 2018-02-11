@@ -22,7 +22,7 @@ class Node:
                 return uncolored_sibbs[0]
         return None
 
-    def IIlI11IIll1llIl1(self, visited_nodes, needs_coloring):
+    def find_needs_coloring(self, visited_nodes, needs_coloring):
         if self not in visited_nodes:
             visited_nodes.add(self)
             forced_sibb = self.forced_sibb()
@@ -31,7 +31,7 @@ class Node:
                 needs_coloring.add(forced_sibb)
 
             for node in self.sibbs:
-                node.IIlI11IIll1llIl1(visited_nodes, needs_coloring)
+                node.find_needs_coloring(visited_nodes, needs_coloring)
 
 # [[0,0,0,1,0],[0,0,0,1,1],[0,0,0,0,1],[1,1,0,0,0],[0,1,1,0,0]]
 def make_graph(adj_matrix, num_colored=4, colored_nodes=None):
@@ -84,7 +84,7 @@ def run_forcing(graph_head):
         visited_nodes = set()
 
         # Find which nodes to color (needs_coloring)
-        graph_head.IIlI11IIll1llIl1(visited_nodes, needs_coloring)
+        graph_head.find_needs_coloring(visited_nodes, needs_coloring)
 
         for node in needs_coloring:
             node.color()
