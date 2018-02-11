@@ -1,4 +1,5 @@
 import random
+import json
 
 class Node:
     def __init__(self):
@@ -62,8 +63,12 @@ def make_adj(node_list):
         for sibb in n.get_sibbs():
             s_idx = numbered_nodes[sibb]
             adj[n_idx][s_idx] = 1
-    labels = [1 if n.is_colored else 0 for n in node_list]
+    labels = [1 if n.is_colored else None for n in node_list]
     return adj, labels
+
+def print_json(adj, labels):
+    print(json.dumps(adj))
+    print(json.dumps(labels))
 
 def run_forcing(graph_head):
     """
@@ -110,5 +115,5 @@ def exhaustively_test_until_stable():
 if __name__ == '__main__':
     graph = make_graph([[0,1,0,0,0,0,0,0,0,0,0],[1,0,1,0,0,0,0,0,0,0,0],[0,1,0,1,0,0,0,0,0,0,0],[0,0,1,0,1,0,0,0,0,0,0],[0,0,0,1,0,1,0,0,0,0,0],[0,0,0,0,1,0,1,0,0,0,0],[0,0,0,0,0,1,0,1,0,0,0],[0,0,0,0,0,0,1,0,1,0,0],[0,0,0,0,0,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0,1,0]], num_colored=3)
     print(run_forcing(graph[0]))
-    print(make_adj(graph))
+    print_json(*make_adj(graph))
     # exhaustively_test()
