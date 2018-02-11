@@ -50,7 +50,20 @@ def make_graph(adj_matrix, num_colored=4, colored_nodes=None):
         for node in random.sample(nodes, num_colored):
             node.color()
 
-    return nodes[0]
+    return nodes
+
+def make_adj(node_list):
+    numbered_nodes = {n : i for i, n in enumerate(node_list)}
+    adj = []
+    for _ in range(len(node_list)):
+        adj.append([0]*len(node_list)) # creating a square matrix of 0s
+    for n in node_list:
+        n_idx = numbered_nodes[n]
+        for sibb in n.get_sibbs():
+            s_idx = numbered_nodes[sibb]
+            adj[n_idx][s_idx] = 1
+    labels = [1 if n.is_colored else 0 for n in node_list]
+    return adj, labels
 
 def run_forcing(graph_head):
     """
@@ -85,7 +98,8 @@ def exhaustively_test_until_stable():
         for idx in range(len(adj)):
             if bitstring & (1<<idx): # 1<<idx creates a num where the bit at idx is 1, '&' will output 0 if the bitstring does not have a 1 at that idx
                 colored.append(idx)
-        graph_head = make_graph(adj, colored_nodes=colored)
+        graph_nodes = make_graph(adj, colored_nodes=colored)
+        graph_head = graph_nodes[0]
         
         times[len(colored)] = times.get(len(colored), []) + [run_forcing(graph_head)]
         if len(colored) == 0:
@@ -94,6 +108,7 @@ def exhaustively_test_until_stable():
 
 
 if __name__ == '__main__':
-    # graph_head = make_graph([[0,1,0,0,0,0,0,0,0,0,0],[1,0,1,0,0,0,0,0,0,0,0],[0,1,0,1,0,0,0,0,0,0,0],[0,0,1,0,1,0,0,0,0,0,0],[0,0,0,1,0,1,0,0,0,0,0],[0,0,0,0,1,0,1,0,0,0,0],[0,0,0,0,0,1,0,1,0,0,0],[0,0,0,0,0,0,1,0,1,0,0],[0,0,0,0,0,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0,1,0]])
-    # print(run_forcing(graph_head))
-    exhaustively_test()
+    graph = make_graph([[0,1,0,0,0,0,0,0,0,0,0],[1,0,1,0,0,0,0,0,0,0,0],[0,1,0,1,0,0,0,0,0,0,0],[0,0,1,0,1,0,0,0,0,0,0],[0,0,0,1,0,1,0,0,0,0,0],[0,0,0,0,1,0,1,0,0,0,0],[0,0,0,0,0,1,0,1,0,0,0],[0,0,0,0,0,0,1,0,1,0,0],[0,0,0,0,0,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0,1,0]], num_colored=3)
+    print(run_forcing(graph[0]))
+    print(make_adj(graph))
+    # exhaustively_test()

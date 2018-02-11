@@ -28,9 +28,12 @@ def exhaustive_test_until_stable_graph():
     means_list = [(num_colored, mean_time) for num_colored, mean_time in means.items()]
     # plt.scatter([num for num, _ in means_list], [time for _, time in means_list])
 
-    plt.errorbar(x=[num for num, _ in means_list], y=[time for _, time in means_list],
-        yerr=[[np.percentile(times[num], 25) for num, _ in means_list], [np.percentile(times[num], 75) for num, _ in means_list]])
+    print([[(num, np.percentile(times[num], 25)) for num, _ in means_list], [(num, np.percentile(times[num], 75)) for num, _ in means_list]])
 
+    plt.errorbar(x=[num for num, _ in means_list], y=[time for _, time in means_list],
+        yerr=[[mean-np.percentile(times[num], 25) for num, mean in means_list], [np.percentile(times[num], 75)-mean for num, mean in means_list]])
+
+    plt.grid(True)
     plt.show()
 
 def hist_one_size(times):
