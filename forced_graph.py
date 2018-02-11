@@ -70,11 +70,12 @@ def print_json(adj, labels):
     print(json.dumps(adj))
     print(json.dumps(labels))
 
-def run_forcing(graph_head):
+def run_forcing(node_list):
     """
     Takes a graph with certain colored nodes, runs the forcing propagation,
     returns propagation time #and list of colored nodes
     """
+    graph_head = node_list[0]
     num_steps = -1
     colored_count = 1
 
@@ -91,12 +92,14 @@ def run_forcing(graph_head):
 
         colored_count = len(needs_coloring)
 
-    return num_steps
+    is_finished = all(n.is_colored for n in node_list)
+    return num_steps, is_finished
 
 def exhaustively_test_until_stable():
     adj = [[0,1,0,0,1,0,0,0,0,0,0,0],[1,0,1,0,0,1,0,0,0,0,0,0],[0,1,0,1,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0],[1,0,0,0,0,1,0,0,1,0,0,0],[0,1,0,0,1,0,1,0,0,1,0,0],[0,0,1,0,0,1,0,1,0,0,1,0],[0,0,0,1,0,0,1,0,0,0,0,1],[0,0,0,0,1,0,0,0,0,1,0,0],[0,0,0,0,0,1,0,0,1,0,1,0],[0,0,0,0,0,0,1,0,0,1,0,1],[0,0,0,0,0,0,0,1,0,0,1,0]]
 
-    times = {}
+    finished_times = {}
+    un_finished_times = {}
     max_num = 1<<len(adj)
     for bitstring in range(1, max_num): # iterating through all possible bitstrings of length of # of nodes
         colored = []
@@ -104,16 +107,21 @@ def exhaustively_test_until_stable():
             if bitstring & (1<<idx): # 1<<idx creates a num where the bit at idx is 1, '&' will output 0 if the bitstring does not have a 1 at that idx
                 colored.append(idx)
         graph_nodes = make_graph(adj, colored_nodes=colored)
-        graph_head = graph_nodes[0]
+
+        prop_time, is_finished = run_forcing(graph_nodes)
         
-        times[len(colored)] = times.get(len(colored), []) + [run_forcing(graph_head)]
+        if is_finished:
+            finished_times[len(colored)] = finished_times.get(len(colored), []) + [prop_time]
+        else:
+            un_finished_times[len(colored)] = un_finished_times.get(len(colored), []) + [prop_time]
+
         if len(colored) == 0:
             print(bitstring)
-    return times
+    return finished_times, un_finished_times
 
 
 if __name__ == '__main__':
     graph = make_graph([[0,1,0,0,0,0,0,0,0,0,0],[1,0,1,0,0,0,0,0,0,0,0],[0,1,0,1,0,0,0,0,0,0,0],[0,0,1,0,1,0,0,0,0,0,0],[0,0,0,1,0,1,0,0,0,0,0],[0,0,0,0,1,0,1,0,0,0,0],[0,0,0,0,0,1,0,1,0,0,0],[0,0,0,0,0,0,1,0,1,0,0],[0,0,0,0,0,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0,1,0]], num_colored=3)
-    print(run_forcing(graph[0]))
+    print(run_forcing(graph))
     print_json(*make_adj(graph))
     # exhaustively_test()

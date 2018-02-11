@@ -3,11 +3,9 @@ from forced_graph import exhaustively_test_until_stable
 import matplotlib.pyplot as plt
 import math
 import numpy as np
+from collections import Counter
 
-def exhaustive_test_until_stable_graph():
-    times = exhaustively_test_until_stable()
-
-
+def exhaustive_test_until_stable_graph(times):
     means = {}
     for size, propagations in times.items():
         means[size] = sum(propagations) / len(propagations)
@@ -36,21 +34,31 @@ def exhaustive_test_until_stable_graph():
     plt.grid(True)
     plt.show()
 
-def hist_one_size(times):
-    pass
-    # >>> from forced_graph import exhaustively_test_until_stable
-# >>> times = exhaustively_test_until_stable()
-# >>> 
-# >>> from collections import Counter
-# >>> count6= Counter(times[6])
-# >>> import matplotlib.pyplot as plt
-# >>> nums = list(count6.elements())
-# >>> vals = [count6[n] for n in nums]
-# >>> plt.bar(nums, vals)
-# <Container object of 924 artists>
-# >>> plt.show()
-
+def hist_one_size(times, set_size, num_vertices, secondary_times=None):
+    count= Counter(times.get(set_size,[]))
+    nums = list(range(num_vertices-set_size+1))
+    vals = [count[n] for n in nums]
+    plt.bar(nums, vals)
+    if secondary_times:
+        count_secondary = Counter(secondary_times.get(set_size, []))
+        vals_secondary = [count_secondary[n] for n in nums]
+        plt.bar(nums, vals_secondary, bottom=vals)
+    plt.title("size "+str(set_size))
+    plt.ylabel("number of sets")
+    plt.xlabel("propogation time")
+    plt.xlim(0, num_vertices)
+    plt.xticks(range(0, num_vertices,2))
 
 if __name__ == '__main__':
-    result = exhaustive_test_until_stable_graph()
+    finished_times, un_finished_times = exhaustively_test_until_stable()
+    plt.suptitle("Distribution of propogation times for different sizes of forcing sets")
+    ax = plt.subplot(2,6,1)
+    hist_one_size(finished_times, 1, 12, secondary_times=un_finished_times)
+    for size in range(2, 12):
+        plt.subplot(2,6,size, sharey=ax)
+        hist_one_size(finished_times, size, 12, secondary_times=un_finished_times)
+    plt.subplots_adjust(left=None, bottom=None, right=None, top=None,
+                wspace=0.5, hspace=0.4)
+    plt.show()
+
 
