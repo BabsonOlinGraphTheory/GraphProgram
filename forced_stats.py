@@ -1,4 +1,4 @@
-from forced_graph import exhaustively_test_until_stable
+from forced_graph import exhaustively_test_until_stable, sample_test_until_stable
 
 import matplotlib.pyplot as plt
 import math
@@ -73,7 +73,8 @@ def hist_all_sizes(times, num_vertices, secondary_times=None, percentage=False):
     plt.show()
 
 if __name__ == '__main__':
-    finished_times, un_finished_times = exhaustively_test_until_stable([[0,1,0,0,1,0,0,0,0,0,0,0],[1,0,1,0,0,1,0,0,0,0,0,0],[0,1,0,1,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0],[1,0,0,0,0,1,0,0,1,0,0,0],[0,1,0,0,1,0,1,0,0,1,0,0],[0,0,1,0,0,1,0,1,0,0,1,0],[0,0,0,1,0,0,1,0,0,0,0,1],[0,0,0,0,1,0,0,0,0,1,0,0],[0,0,0,0,0,1,0,0,1,0,1,0],[0,0,0,0,0,0,1,0,0,1,0,1],[0,0,0,0,0,0,0,1,0,0,1,0]])
+    adj=[[0,1,0,0,1,0,0,0,0,0,0,0],[1,0,1,0,0,1,0,0,0,0,0,0],[0,1,0,1,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0],[1,0,0,0,0,1,0,0,1,0,0,0],[0,1,0,0,1,0,1,0,0,1,0,0],[0,0,1,0,0,1,0,1,0,0,1,0],[0,0,0,1,0,0,1,0,0,0,0,1],[0,0,0,0,1,0,0,0,0,1,0,0],[0,0,0,0,0,1,0,0,1,0,1,0],[0,0,0,0,0,0,1,0,0,1,0,1],[0,0,0,0,0,0,0,1,0,0,1,0]]
+    finished_times, un_finished_times = sample_test_until_stable(adj)
+    print(finished_times)
+    # print(finished_times,un_finished_times)
     hist_all_sizes(finished_times, 12, secondary_times=un_finished_times, percentage=True)
-
-
