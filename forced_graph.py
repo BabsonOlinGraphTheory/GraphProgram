@@ -9,6 +9,10 @@ class Node:
     def color(self):
         self.is_colored = True
 
+    def color(self, color):
+        # For refactoring
+        self.is_colored = True
+
     def add_sibb(self, sibb):
         self.sibbs.append(sibb)
 
@@ -33,6 +37,27 @@ class Node:
             for node in self.sibbs:
                 node.find_needs_coloring(visited_nodes, needs_coloring)
 
+class BicolorNode(Node):
+    def __init__(self):
+        self.sibbs = []
+        self.is_colored = False
+        self.color = 0   # Color can be 0 (uncolored), 1 or 2.
+
+    def color(self, new_color):
+        self.is_colored = True
+        self.color = new_color
+
+    def decide_force(self):
+        # This is written with generalization in mind, so it looks a little weird
+        colors = [(num_color, sum(sibb.color == color_num for sibb in self.sibbs)) for color_num in range(1,2)] # <= [(color_num, frequency in neighbors)]
+        colors = sorted(lambda color: color[1]) # Sort by frequency
+
+        if colors[0][1] == colors[1][1]: # Two first colors have frequency
+            return None # TODO: This works fine for two colors, but requires more thought for more colors
+
+        return (self, colors[0][0])
+
+
 # [[0,0,0,1,0],[0,0,0,1,1],[0,0,0,0,1],[1,1,0,0,0],[0,1,1,0,0]]
 def make_graph(adj_matrix, num_colored=4, colored_nodes=None):
     # Create all nodes
@@ -49,7 +74,7 @@ def make_graph(adj_matrix, num_colored=4, colored_nodes=None):
             nodes[i].color()
     else:
         for node in random.sample(nodes, num_colored):
-            node.color()
+            node.color(1)
 
     return nodes
 
@@ -87,8 +112,8 @@ def run_forcing(node_list):
         # Find which nodes to color (needs_coloring)
         graph_head.find_needs_coloring(visited_nodes, needs_coloring)
 
-        for node in needs_coloring:
-            node.color()
+        for node, new_color in needs_coloring:
+            node.color(new_color)
 
         colored_count = len(needs_coloring)
 
