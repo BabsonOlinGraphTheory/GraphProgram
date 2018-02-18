@@ -61,7 +61,7 @@ def hist_one_size(times, set_size, num_vertices, secondary_times=None, percentag
     plt.xlim(0, num_vertices)
     plt.xticks(range(0, num_vertices,2))
 
-def hist_all_sizes(times, set_size, num_vertices, secondary_times=None, percentage=False):
+def hist_all_sizes(times, num_vertices, secondary_times=None, percentage=False):
     plt.suptitle("Distribution of propogation times for different sizes of forcing sets")
     ax = plt.subplot(2,6,1)
     hist_one_size(times, 1, 12, secondary_times=secondary_times, percentage=percentage)
@@ -73,7 +73,7 @@ def hist_all_sizes(times, set_size, num_vertices, secondary_times=None, percenta
     plt.show()
 
 if __name__ == '__main__':
-    finished_times, un_finished_times = exhaustively_test_until_stable()
-    hist_all_sizes(finished_times, 1, 12, secondary_times=un_finished_times, percentage=True)
+    finished_times, un_finished_times = exhaustively_test_until_stable([[0,1,0,0,1,0,0,0,0,0,0,0],[1,0,1,0,0,1,0,0,0,0,0,0],[0,1,0,1,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0],[1,0,0,0,0,1,0,0,1,0,0,0],[0,1,0,0,1,0,1,0,0,1,0,0],[0,0,1,0,0,1,0,1,0,0,1,0],[0,0,0,1,0,0,1,0,0,0,0,1],[0,0,0,0,1,0,0,0,0,1,0,0],[0,0,0,0,0,1,0,0,1,0,1,0],[0,0,0,0,0,0,1,0,0,1,0,1],[0,0,0,0,0,0,0,1,0,0,1,0]])
+    hist_all_sizes(finished_times, 12, secondary_times=un_finished_times, percentage=True)
 
 

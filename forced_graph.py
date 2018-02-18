@@ -95,8 +95,8 @@ def run_forcing(node_list):
     is_finished = all(n.is_colored for n in node_list)
     return num_steps, is_finished
 
-def exhaustively_test_until_stable():
-    adj = [[0,1,0,0,1,0,0,0,0,0,0,0],[1,0,1,0,0,1,0,0,0,0,0,0],[0,1,0,1,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0],[1,0,0,0,0,1,0,0,1,0,0,0],[0,1,0,0,1,0,1,0,0,1,0,0],[0,0,1,0,0,1,0,1,0,0,1,0],[0,0,0,1,0,0,1,0,0,0,0,1],[0,0,0,0,1,0,0,0,0,1,0,0],[0,0,0,0,0,1,0,0,1,0,1,0],[0,0,0,0,0,0,1,0,0,1,0,1],[0,0,0,0,0,0,0,1,0,0,1,0]]
+def exhaustively_test_until_stable(adj):
+    # adj = [[0,1,0,0,1,0,0,0,0,0,0,0],[1,0,1,0,0,1,0,0,0,0,0,0],[0,1,0,1,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0],[1,0,0,0,0,1,0,0,1,0,0,0],[0,1,0,0,1,0,1,0,0,1,0,0],[0,0,1,0,0,1,0,1,0,0,1,0],[0,0,0,1,0,0,1,0,0,0,0,1],[0,0,0,0,1,0,0,0,0,1,0,0],[0,0,0,0,0,1,0,0,1,0,1,0],[0,0,0,0,0,0,1,0,0,1,0,1],[0,0,0,0,0,0,0,1,0,0,1,0]]
 
     finished_times = {}
     un_finished_times = {}
@@ -122,8 +122,7 @@ def exhaustively_test_until_stable():
 def import_graph(fname):
     graph_deets = json.load(open(fname))
     matrix = graph_deets["adjacency_matrix"]
-    graph_nodes = make_graph(matrix)
-    return graph_deets, graph_nodes
+    return graph_deets, matrix
 
 def export_graph(fname, graph_deets, graph_nodes):
     adj, labels = make_adj(graph_nodes)
@@ -135,8 +134,9 @@ if __name__ == '__main__':
     print(run_forcing(graph))
     print_json(*make_adj(graph))
 
-    graph_obj, nodes = import_graph("test_graph.json")
+    graph_obj, matrix = import_graph("test_graph.json")
+    graph = make_graph(matrix)
     print(run_forcing(graph))
-    export_graph("test_graph_after.json",graph_obj, nodes)
+    export_graph("test_graph_after.json",graph_obj, graph)
 
     # exhaustively_test()
