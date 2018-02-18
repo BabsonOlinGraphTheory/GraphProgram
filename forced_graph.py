@@ -119,9 +119,24 @@ def exhaustively_test_until_stable():
             print(bitstring)
     return finished_times, un_finished_times
 
+def import_graph(fname):
+    graph_deets = json.load(open(fname))
+    matrix = graph_deets["adjacency_matrix"]
+    graph_nodes = make_graph(matrix)
+    return graph_deets, graph_nodes
+
+def export_graph(fname, graph_deets, graph_nodes):
+    adj, labels = make_adj(graph_nodes)
+    graph_deets["labeling"] = labels
+    json.dump(graph_deets, open(fname, 'w'))
 
 if __name__ == '__main__':
     graph = make_graph([[0,1,0,0,0,0,0,0,0,0,0],[1,0,1,0,0,0,0,0,0,0,0],[0,1,0,1,0,0,0,0,0,0,0],[0,0,1,0,1,0,0,0,0,0,0],[0,0,0,1,0,1,0,0,0,0,0],[0,0,0,0,1,0,1,0,0,0,0],[0,0,0,0,0,1,0,1,0,0,0],[0,0,0,0,0,0,1,0,1,0,0],[0,0,0,0,0,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0,1,0]], num_colored=3)
     print(run_forcing(graph))
     print_json(*make_adj(graph))
+
+    graph_obj, nodes = import_graph("test_graph.json")
+    print(run_forcing(graph))
+    export_graph("test_graph_after.json",graph_obj, nodes)
+
     # exhaustively_test()
