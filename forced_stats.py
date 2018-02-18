@@ -34,31 +34,46 @@ def exhaustive_test_until_stable_graph(times):
     plt.grid(True)
     plt.show()
 
-def hist_one_size(times, set_size, num_vertices, secondary_times=None):
+def hist_one_size(times, set_size, num_vertices, secondary_times=None, percentage=False):
     count= Counter(times.get(set_size,[]))
-    nums = list(range(num_vertices-set_size+1))
-    vals = [count[n] for n in nums]
-    plt.bar(nums, vals)
+    count_secondary = Counter()
     if secondary_times:
         count_secondary = Counter(secondary_times.get(set_size, []))
-        vals_secondary = [count_secondary[n] for n in nums]
-        plt.bar(nums, vals_secondary, bottom=vals)
-    plt.title("size "+str(set_size))
+
+    nums = list(range(num_vertices-set_size+1))
+    vals = [count[n] for n in nums]
+    vals_secondary = [count_secondary[n] for n in nums]
+    total = sum(vals) + sum(vals_secondary)
+
+    if percentage:
+        vals = [v/total for v in vals]
+        vals_secondary = [v/total for v in vals_secondary]
+
+    plt.bar(nums, vals)
+    plt.bar(nums, vals_secondary, bottom=vals)
+
+    title_str = "size "+str(set_size)
+    if percentage:
+        title_str += " (" + str(total) + " sets)"
+    plt.title(title_str)
     plt.ylabel("number of sets")
     plt.xlabel("propogation time")
     plt.xlim(0, num_vertices)
     plt.xticks(range(0, num_vertices,2))
 
-if __name__ == '__main__':
-    finished_times, un_finished_times = exhaustively_test_until_stable()
+def hist_all_sizes(times, set_size, num_vertices, secondary_times=None, percentage=False):
     plt.suptitle("Distribution of propogation times for different sizes of forcing sets")
     ax = plt.subplot(2,6,1)
-    hist_one_size(finished_times, 1, 12, secondary_times=un_finished_times)
+    hist_one_size(times, 1, 12, secondary_times=secondary_times, percentage=percentage)
     for size in range(2, 12):
         plt.subplot(2,6,size, sharey=ax)
-        hist_one_size(finished_times, size, 12, secondary_times=un_finished_times)
+        hist_one_size(times, size, 12, secondary_times=secondary_times, percentage=percentage)
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None,
                 wspace=0.5, hspace=0.4)
     plt.show()
+
+if __name__ == '__main__':
+    finished_times, un_finished_times = exhaustively_test_until_stable()
+    hist_all_sizes(finished_times, 1, 12, secondary_times=un_finished_times, percentage=True)
 
 
