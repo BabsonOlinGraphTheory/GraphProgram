@@ -1,0 +1,13 @@
+[[source]]
+
+url = "https://babsonolin-graphprogram.herokuapp.com/"
+verify_ssl = true
+
+
+[packages]
+
+flask = "*"
+
+[requires]
+
+python_version = "3.6"
