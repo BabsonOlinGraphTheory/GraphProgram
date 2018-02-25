@@ -9,6 +9,9 @@ class Node:
     def color(self):
         self.is_colored = True
 
+    def uncolor(self):
+        self.is_colored = False
+
     def add_sibb(self, sibb):
         self.sibbs.append(sibb)
 
@@ -32,6 +35,13 @@ class Node:
 
             for node in self.sibbs:
                 node.find_needs_coloring(visited_nodes, needs_coloring)
+
+class DataCollector:
+    def each_run(self, color_set, nodes_list, prop_time, is_finished):
+        raise NotImplementedError("you must use a subclass")
+
+    def finish(self):
+        raise NotImplementedError("you must use a subclass")
 
 # [[0,0,0,1,0],[0,0,0,1,1],[0,0,0,0,1],[1,1,0,0,0],[0,1,1,0,0]]
 def make_graph(adj_matrix, num_colored=4, colored_nodes=None):
@@ -73,7 +83,7 @@ def print_json(adj, labels):
 def run_forcing(node_list):
     """
     Takes a graph with certain colored nodes, runs the forcing propagation,
-    returns propagation time #and list of colored nodes
+    returns propagation time
     """
     graph_head = node_list[0]
     num_steps = -1
@@ -95,33 +105,30 @@ def run_forcing(node_list):
     is_finished = all(n.is_colored for n in node_list)
     return num_steps, is_finished
 
-# def test_until_stable(adj, sampling_func):
-#     finished_times = {}
-#     un_finished_times = {}
-    
-
-def exhaustively_test_until_stable(adj):
+def test_until_stable(adj, sampling_func, data_collector_obj=None):
     finished_times = {}
     un_finished_times = {}
+    for color_set in sampling_func(adj):
+        graph_nodes = make_graph(adj, colored_nodes=color_set)
+        prop_time, is_finished = run_forcing(graph_nodes)
+        if is_finished:
+            finished_times[len(color_set)] = finished_times.get(len(color_set), []) + [prop_time]
+        else:
+            un_finished_times[len(color_set)] = un_finished_times.get(len(color_set), []) + [prop_time]
+        if data_collector_obj:
+            data_collector_obj.each_run(color_set, graph_nodes, prop_time, is_finished)
+    if data_collector_obj:
+        data_collector_obj.finish()
+    return finished_times, un_finished_times
+
+def exhaustively_sample(adj):
     max_num = 1<<len(adj)
     for bitstring in range(1, max_num): # iterating through all possible bitstrings of length of # of nodes
         colored = []
         for idx in range(len(adj)):
             if bitstring & (1<<idx): # 1<<idx creates a num where the bit at idx is 1, '&' will output 0 if the bitstring does not have a 1 at that idx
                 colored.append(idx)
-        graph_nodes = make_graph(adj, colored_nodes=colored)
-
-        prop_time, is_finished = run_forcing(graph_nodes)
-
-        if is_finished:
-            finished_times[len(colored)] = finished_times.get(len(colored), []) + [prop_time]
-        else:
-            un_finished_times[len(colored)] = un_finished_times.get(len(colored), []) + [prop_time]
-            print(colored)
-
-        if len(colored) == 0:
-            print(bitstring)
-    return finished_times, un_finished_times
+        yield colored
 
 def sample_test_until_stable(adj, sample_prop=.5):
     finished_times = {}

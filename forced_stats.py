@@ -1,4 +1,4 @@
-from forced_graph import exhaustively_test_until_stable, sample_test_until_stable
+from forced_graph import *
 
 import matplotlib.pyplot as plt
 import math
