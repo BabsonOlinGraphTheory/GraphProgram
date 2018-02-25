@@ -95,9 +95,12 @@ def run_forcing(node_list):
     is_finished = all(n.is_colored for n in node_list)
     return num_steps, is_finished
 
-def exhaustively_test_until_stable(adj):
-    # adj = [[0,1,0,0,1,0,0,0,0,0,0,0],[1,0,1,0,0,1,0,0,0,0,0,0],[0,1,0,1,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0],[1,0,0,0,0,1,0,0,1,0,0,0],[0,1,0,0,1,0,1,0,0,1,0,0],[0,0,1,0,0,1,0,1,0,0,1,0],[0,0,0,1,0,0,1,0,0,0,0,1],[0,0,0,0,1,0,0,0,0,1,0,0],[0,0,0,0,0,1,0,0,1,0,1,0],[0,0,0,0,0,0,1,0,0,1,0,1],[0,0,0,0,0,0,0,1,0,0,1,0]]
+# def test_until_stable(adj, sampling_func):
+#     finished_times = {}
+#     un_finished_times = {}
+    
 
+def exhaustively_test_until_stable(adj):
     finished_times = {}
     un_finished_times = {}
     max_num = 1<<len(adj)
@@ -114,6 +117,7 @@ def exhaustively_test_until_stable(adj):
             finished_times[len(colored)] = finished_times.get(len(colored), []) + [prop_time]
         else:
             un_finished_times[len(colored)] = un_finished_times.get(len(colored), []) + [prop_time]
+            print(colored)
 
         if len(colored) == 0:
             print(bitstring)
