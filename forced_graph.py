@@ -130,20 +130,21 @@ def exhaustively_sample(adj):
                 colored.append(idx)
         yield colored
 
-def sample_test_until_stable(adj, sample_prop=.5):
+def sample_test_until_stable(adj, sample_num=500):
     finished_times = {}
     un_finished_times = {}
     proto_graphs = []
-    max_num = 1<<len(adj)
-    for bitstring in range(1, max_num): # iterating through all possible bitstrings of length of # of nodes
+    proto_proto_graphs = set()
+    num_possibilities = 2**len(adj)
+    while len(proto_proto_graphs) < sample_num:
+        proto_proto_graphs.add(random.randint(0,num_possibilities))
+    for bitstring in proto_proto_graphs: # iterating through all possible bitstrings of length of # of nodes
         colored = []
         for idx in range(len(adj)):
             if bitstring & (1<<idx): # 1<<idx creates a num where the bit at idx is 1, '&' will output 0 if the bitstring does not have a 1 at that idx
                 colored.append(idx)
         proto_graphs.append(colored)
-    sample = int(sample_prop*len(proto_graphs))
-    chosen_protographs = random.sample(proto_graphs, sample)
-    for proto_graph in chosen_protographs:
+    for proto_graph in proto_graphs:
         prop_time, is_finished = run_forcing(make_graph(adj,colored_nodes=proto_graph))
 
         if is_finished:
@@ -151,6 +152,7 @@ def sample_test_until_stable(adj, sample_prop=.5):
         else:
             un_finished_times[len(proto_graph)] = un_finished_times.get(len(proto_graph), []) + [prop_time]
     return finished_times, un_finished_times
+
 
 def import_graph(fname):
     graph_deets = json.load(open(fname))

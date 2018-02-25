@@ -40,14 +40,16 @@ def hist_one_size(times, set_size, num_vertices, secondary_times=None, percentag
     if secondary_times:
         count_secondary = Counter(secondary_times.get(set_size, []))
 
-    nums = list(range(num_vertices-set_size+1))
+    nums = list(range(num_vertices - set_size + 1))
     vals = [count[n] for n in nums]
     vals_secondary = [count_secondary[n] for n in nums]
     total = sum(vals) + sum(vals_secondary)
+    print(vals)
 
     if percentage:
-        vals = [v/total for v in vals]
-        vals_secondary = [v/total for v in vals_secondary]
+        if total:
+            vals = [v/total for v in vals]
+            vals_secondary = [v/total for v in vals_secondary]
 
     plt.bar(nums, vals)
     plt.bar(nums, vals_secondary, bottom=vals)
@@ -64,17 +66,18 @@ def hist_one_size(times, set_size, num_vertices, secondary_times=None, percentag
 def hist_all_sizes(times, num_vertices, secondary_times=None, percentage=False):
     plt.suptitle("Distribution of propogation times for different sizes of forcing sets")
     ax = plt.subplot(2,6,1)
-    hist_one_size(times, 1, 12, secondary_times=secondary_times, percentage=percentage)
+    hist_one_size(times, 1, num_vertices, secondary_times=secondary_times, percentage=percentage)
     for size in range(2, 12):
         plt.subplot(2,6,size, sharey=ax)
-        hist_one_size(times, size, 12, secondary_times=secondary_times, percentage=percentage)
+        hist_one_size(times, size, num_vertices, secondary_times=secondary_times, percentage=percentage)
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None,
                 wspace=0.5, hspace=0.4)
     plt.show()
 
 if __name__ == '__main__':
-    adj=[[0,1,0,0,1,0,0,0,0,0,0,0],[1,0,1,0,0,1,0,0,0,0,0,0],[0,1,0,1,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0],[1,0,0,0,0,1,0,0,1,0,0,0],[0,1,0,0,1,0,1,0,0,1,0,0],[0,0,1,0,0,1,0,1,0,0,1,0],[0,0,0,1,0,0,1,0,0,0,0,1],[0,0,0,0,1,0,0,0,0,1,0,0],[0,0,0,0,0,1,0,0,1,0,1,0],[0,0,0,0,0,0,1,0,0,1,0,1],[0,0,0,0,0,0,0,1,0,0,1,0]]
-    finished_times, un_finished_times = sample_test_until_stable(adj)
-    print(finished_times)
+    adj=[[0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[1,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,1],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0]]
+    finished_times, un_finished_times = sample_test_until_stable(adj,sample_num=500)
+    # print(finished_times)
     # print(finished_times,un_finished_times)
-    hist_all_sizes(finished_times, 12, secondary_times=un_finished_times, percentage=True)
+    #  secondary_times=un_finished_times,
+    hist_all_sizes(finished_times, len(adj), secondary_times=un_finished_times, percentage=True)
