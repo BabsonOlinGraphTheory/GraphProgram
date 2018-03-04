@@ -5,9 +5,11 @@ class Node:
     def __init__(self):
         self.sibbs = []
         self.is_colored = False
+        self.color = 0
 
     def color(self):
         self.is_colored = True
+        self.color = 1
 
     def color(self, color):
         # For refactoring
@@ -19,6 +21,13 @@ class Node:
     def get_sibbs(self):
         return self.sibbs
 
+    def decide_force(self):
+        if self.is_colored:
+            uncolored_sibbs = [sibb for sibb in self.sibbs if not sibb.is_colored]
+            if len(uncolored_sibbs) == 1:
+                return uncolored_sibbs[0]
+        return None
+
     def forced_sibb(self):
         if self.is_colored:
             uncolored_sibbs = [sibb for sibb in self.sibbs if not sibb.is_colored]
@@ -29,10 +38,10 @@ class Node:
     def find_needs_coloring(self, visited_nodes, needs_coloring):
         if self not in visited_nodes:
             visited_nodes.add(self)
-            forced_sibb = self.forced_sibb()
+            forced_node = self.forced_sibb()
 
-            if forced_sibb:
-                needs_coloring.add(forced_sibb)
+            if forced_node:
+                needs_coloring.add(forced_node)
 
             for node in self.sibbs:
                 node.find_needs_coloring(visited_nodes, needs_coloring)
@@ -43,25 +52,35 @@ class BicolorNode(Node):
         self.is_colored = False
         self.color = 0   # Color can be 0 (uncolored), 1 or 2.
 
-    def color(self, new_color):
+    def set_color(self, new_color):
         self.is_colored = True
         self.color = new_color
 
     def decide_force(self):
-        # This is written with generalization in mind, so it looks a little weird
-        colors = [(num_color, sum(sibb.color == color_num for sibb in self.sibbs)) for color_num in range(1,2)] # <= [(color_num, frequency in neighbors)]
-        colors = sorted(lambda color: color[1]) # Sort by frequency
+        # This is written with generalization in mind, so it looks a little weird                           v TODO: Max color number + 1
+        colors = [(color_num, sum(sibb.color == color_num for sibb in self.sibbs)) for color_num in range(1,3)] # <= [(color_num, frequency in neighbors)]
+        colors = sorted(colors, key=lambda color: color[1], reverse=True) # Sort by frequency
+        print("Current: {}, colors: {}".format(self.color, colors))
+        if colors[0][1] > colors[1][1] and colors[0][0] != self.color: # Most common color is more frequent than next
+            return (self, colors[0][0]) # TODO: This works fine for two colors, but requires more thought for more colors
 
-        if colors[0][1] == colors[1][1]: # Two first colors have frequency
-            return None # TODO: This works fine for two colors, but requires more thought for more colors
+        return None
 
-        return (self, colors[0][0])
+    def find_needs_coloring(self, visited_nodes, needs_coloring):
+        if self not in visited_nodes:
+            visited_nodes.add(self)
+            forced_node = self.decide_force()
 
+            if forced_node:
+                needs_coloring.add(forced_node)
+
+            for node in self.sibbs:
+                node.find_needs_coloring(visited_nodes, needs_coloring)
 
 # [[0,0,0,1,0],[0,0,0,1,1],[0,0,0,0,1],[1,1,0,0,0],[0,1,1,0,0]]
 def make_graph(adj_matrix, num_colored=4, colored_nodes=None):
     # Create all nodes
-    nodes = [Node() for row in adj_matrix]
+    nodes = [BicolorNode() for row in adj_matrix]
 
     # Make edges
     for source_node_idx, row in enumerate(adj_matrix):
@@ -69,12 +88,12 @@ def make_graph(adj_matrix, num_colored=4, colored_nodes=None):
             if is_connected:
                 nodes[source_node_idx].add_sibb(nodes[target_node_idx])
 
-    if colored_nodes:
-        for i in colored_nodes:
-            nodes[i].color()
+    if colored_nodes: # list of node colors in order of nodes
+        for node_idx, given_color in enumerate(colored_nodes):
+            nodes[node_idx].set_color(given_color)
     else:
         for node in random.sample(nodes, num_colored):
-            node.color(1)
+            node.set_color(random.randint(1,2)) # TODO: Generalize to more colors.
 
     return nodes
 
@@ -88,7 +107,7 @@ def make_adj(node_list):
         for sibb in n.get_sibbs():
             s_idx = numbered_nodes[sibb]
             adj[n_idx][s_idx] = 1
-    labels = [1 if n.is_colored else None for n in node_list]
+    labels = [n.color if n.is_colored else None for n in node_list]
     return adj, labels
 
 def print_json(adj, labels):
@@ -104,6 +123,8 @@ def run_forcing(node_list):
     num_steps = -1
     colored_count = 1
 
+    colorings_done = set() # If the same nodes need to be colored again, we've hit a loop.
+
     while colored_count>0:
         num_steps += 1
         needs_coloring = set()
@@ -112,8 +133,14 @@ def run_forcing(node_list):
         # Find which nodes to color (needs_coloring)
         graph_head.find_needs_coloring(visited_nodes, needs_coloring)
 
+
+        print()
+        if frozenset(needs_coloring) in colorings_done:
+            break
+        colorings_done.add(frozenset(needs_coloring))
+
         for node, new_color in needs_coloring:
-            node.color(new_color)
+            node.set_color(new_color)
 
         colored_count = len(needs_coloring)
 
@@ -146,7 +173,12 @@ def exhaustively_test_until_stable():
 
 
 if __name__ == '__main__':
-    graph = make_graph([[0,1,0,0,0,0,0,0,0,0,0],[1,0,1,0,0,0,0,0,0,0,0],[0,1,0,1,0,0,0,0,0,0,0],[0,0,1,0,1,0,0,0,0,0,0],[0,0,0,1,0,1,0,0,0,0,0],[0,0,0,0,1,0,1,0,0,0,0],[0,0,0,0,0,1,0,1,0,0,0],[0,0,0,0,0,0,1,0,1,0,0],[0,0,0,0,0,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0,1,0]], num_colored=3)
+    print("Making graph")
+    # graph = make_graph([[0,1,0,0,0,0,0,0,0,0,0],[1,0,1,0,0,0,0,0,0,0,0],[0,1,0,1,0,0,0,0,0,0,0],[0,0,1,0,1,0,0,0,0,0,0],[0,0,0,1,0,1,0,0,0,0,0],[0,0,0,0,1,0,1,0,0,0,0],[0,0,0,0,0,1,0,1,0,0,0],[0,0,0,0,0,0,1,0,1,0,0],[0,0,0,0,0,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0,1,0]],
+    #                         colored_nodes=[1,1,1,1,0,0,2,2,2,2,2])
+    graph = make_graph([[0,1,1,0],[1,0,1,1],[1,1,0,1],[0,1,1,0]], colored_nodes=[1,2,1,2])
+    print("\nRun force")
     print(run_forcing(graph))
+    print("\nAdjacency matrix")
     print_json(*make_adj(graph))
     # exhaustively_test()
