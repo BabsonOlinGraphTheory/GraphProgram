@@ -42,7 +42,7 @@ if __name__ == '__main__':
         graph_obj, matrix = forced_graph.import_graph(fname)
         output_dir = fname.split(".")[0]
         data_collector = UnfinishedForcingSets(graph_obj, output_dir)
-        finished_times, un_finished_times = forced_graph.test_until_stable(matrix, forced_graph.exhaustively_sample, data_collector_obj = data_collector)
+        finished_times, un_finished_times = forced_graph.test_until_stable(matrix, forced_graph.uniformly_sample, data_collector_obj = data_collector)
         forced_stats.hist_all_sizes(finished_times, len(matrix), secondary_times=un_finished_times, percentage=True)
 
     else:

@@ -107,7 +107,7 @@ def run_forcing(node_list):
 
 def test_until_stable(adj, sampling_func, data_collector_obj=None):
     """ Problems: sometimes we sample inexhaustively, so we're just using the
-        defualt argument for sample_test_until_stable...it's fine I swear
+        defualt argument for uniformly_sample...it's fine I swear
     """
     finished_times = {}
     un_finished_times = {}
@@ -133,12 +133,13 @@ def exhaustively_sample(adj):
                 colored.append(idx)
         yield colored
 
-def sample_test_until_stable(adj, sample_num=10000):
+def uniformly_sample(adj, sample_num=10000):
     finished_times = {}
     un_finished_times = {}
     proto_graphs = []
     proto_proto_graphs = set()
     num_possibilities = 2**len(adj)
+    sample_num = min(sample_num, num_possibilities)
     while len(proto_proto_graphs) < sample_num:
         proto_proto_graphs.add(random.randint(0,num_possibilities))
     for bitstring in proto_proto_graphs: # iterating through all possible bitstrings of length of # of nodes
@@ -180,7 +181,7 @@ if __name__ == '__main__':
     print(run_forcing(graph))
     export_graph("test_graph_after.json",graph_obj, graph)
 
-    print(test_until_stable(adj, sample_test_until_stable))
+    print(test_until_stable(adj, uniformly_sample))
 
     # graph_obj, nodes = import_graph("test_graph.json")
     # print(run_forcing(graph))
