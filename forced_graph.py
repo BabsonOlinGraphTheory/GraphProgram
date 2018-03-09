@@ -105,13 +105,13 @@ def run_forcing(node_list):
     is_finished = all(n.is_colored for n in node_list)
     return num_steps, is_finished
 
-def test_until_stable(adj, sampling_func, data_collector_obj=None):
+def test_until_stable(adj, sampling_func, data_collector_obj=None, sample_func_args={}):
     """ Problems: sometimes we sample inexhaustively, so we're just using the
         defualt argument for uniformly_sample...it's fine I swear
     """
     finished_times = {}
     un_finished_times = {}
-    for color_set in sampling_func(adj):
+    for color_set in sampling_func(adj, **sample_func_args):
         graph_nodes = make_graph(adj, colored_nodes=color_set)
         prop_time, is_finished = run_forcing(graph_nodes)
         if is_finished:
@@ -148,15 +148,9 @@ def uniformly_sample(adj, sample_num=10000):
             if bitstring & (1<<idx): # 1<<idx creates a num where the bit at idx is 1, '&' will output 0 if the bitstring does not have a 1 at that idx
                 colored.append(idx)
         yield colored
-    #     proto_graphs.append(colored)
-    # for proto_graph in proto_graphs:
-    #     prop_time, is_finished = run_forcing(make_graph(adj,colored_nodes=proto_graph))
-    #
-    #     if is_finished:
-    #         finished_times[len(proto_graph)] = finished_times.get(len(proto_graph), []) + [prop_time]
-    #     else:
-    #         un_finished_times[len(proto_graph)] = un_finished_times.get(len(proto_graph), []) + [prop_time]
-    # return finished_times, un_finished_times
+
+def one_size_exhaustively_sample(adj, set_size=1):
+    pass
 
 
 def import_graph(fname):
