@@ -164,10 +164,6 @@ def export_graph(fname, graph_deets, graph_nodes):
     json.dump(graph_deets, open(fname, 'w'))
 
 if __name__ == '__main__':
-    # graph = make_graph([[0,1,0,0,0,0,0,0,0,0,0],[1,0,1,0,0,0,0,0,0,0,0],[0,1,0,1,0,0,0,0,0,0,0],[0,0,1,0,1,0,0,0,0,0,0],[0,0,0,1,0,1,0,0,0,0,0],[0,0,0,0,1,0,1,0,0,0,0],[0,0,0,0,0,1,0,1,0,0,0],[0,0,0,0,0,0,1,0,1,0,0],[0,0,0,0,0,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0,1,0]], num_colored=3)
-    # print(run_forcing(graph))
-    # print_json(*make_adj(graph))
-    # exhaustively_test()
     adj=[[0,1,0,0,1,0,0,0,0,0,0,0],[1,0,1,0,0,1,0,0,0,0,0,0],[0,1,0,1,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0],[1,0,0,0,0,1,0,0,1,0,0,0],[0,1,0,0,1,0,1,0,0,1,0,0],[0,0,1,0,0,1,0,1,0,0,1,0],[0,0,0,1,0,0,1,0,0,0,0,1],[0,0,0,0,1,0,0,0,0,1,0,0],[0,0,0,0,0,1,0,0,1,0,1,0],[0,0,0,0,0,0,1,0,0,1,0,1],[0,0,0,0,0,0,0,1,0,0,1,0]]
 
     graph_obj, matrix = import_graph("test_graph.json")
@@ -176,7 +172,3 @@ if __name__ == '__main__':
     export_graph("test_graph_after.json",graph_obj, graph)
 
     print(test_until_stable(adj, uniformly_sample))
-
-    # graph_obj, nodes = import_graph("test_graph.json")
-    # print(run_forcing(graph))
-    # export_graph("test_graph_after.json",graph_obj, nodes)
