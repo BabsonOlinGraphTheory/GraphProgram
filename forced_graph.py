@@ -1,6 +1,8 @@
 import random
 import json
 
+from collections import OrderedDict
+
 class Node:
     def __init__(self):
         self.sibbs = []
@@ -47,10 +49,11 @@ class Node:
                 node.find_needs_coloring(visited_nodes, needs_coloring)
 
 class BicolorNode(Node):
-    def __init__(self):
+    def __init__(self, node_id):
         self.sibbs = []
         self.is_colored = False
         self.color = 0   # Color can be 0 (uncolored), 1 or 2.
+        self.node_id = node_id # Used for labeling the correct nodes 
 
     def set_color(self, new_color):
         self.is_colored = True
@@ -80,7 +83,7 @@ class BicolorNode(Node):
 # [[0,0,0,1,0],[0,0,0,1,1],[0,0,0,0,1],[1,1,0,0,0],[0,1,1,0,0]]
 def make_graph(adj_matrix, num_colored=4, colored_nodes=None):
     # Create all nodes
-    nodes = [BicolorNode() for row in adj_matrix]
+    nodes = [BicolorNode(row_num) for row_num, row in enumerate(adj_matrix)]
 
     # Make edges
     for source_node_idx, row in enumerate(adj_matrix):
@@ -110,6 +113,27 @@ def make_adj(node_list):
     labels = [n.color if n.is_colored else None for n in node_list]
     return adj, labels
 
+def get_labeling_rec(node, labeling):
+    if labeling.get(node.node_id, None) == None: # Might have id of 0, which is falsy 
+        labeling[node.node_id] = node.color
+        for sibb in node.sibbs:
+            get_labeling_rec(sibb, labeling)
+
+def get_labeling(graph_head):
+    """
+    Walk through graph to get ordered labels.
+    """
+    labeling = {} # labeling[node_id] = color
+    get_labeling_rec(graph_head, labeling)
+
+    print("labeling: {}".format(labeling))
+
+    label_list = [(node_id, color) for node_id, color in labeling]
+    label_list = sorted(label_list)
+    
+    print("label_list: {}".format(label_list))
+    return [color for node_id, color in label_list]
+
 def print_json(adj, labels):
     print(json.dumps(adj))
     print(json.dumps(labels))
@@ -123,8 +147,9 @@ def run_forcing(node_list):
     num_steps = -1
     colored_count = 1
 
-    colorings_done = set() # If the same nodes need to be colored again, we've hit a loop.
-
+    looping_step = -1
+    colorings_done = OrderedDict()  # If the same nodes need to be colored again, we've hit a loop.
+                                    # Dict includes step at which the coloring occured for visualization.
     while colored_count>0:
         num_steps += 1
         needs_coloring = set()
@@ -133,19 +158,24 @@ def run_forcing(node_list):
         # Find which nodes to color (needs_coloring)
         graph_head.find_needs_coloring(visited_nodes, needs_coloring)
 
-
         print()
-        if frozenset(needs_coloring) in colorings_done:
-            break
-        colorings_done.add(frozenset(needs_coloring))
+        colorings_done[tuple(get_labeling(graph_head))] = num_steps
 
         for node, new_color in needs_coloring:
             node.set_color(new_color)
 
+        if frozenset(needs_coloring) in colorings_done:
+            # looping_step = num_steps
+            break
+
         colored_count = len(needs_coloring)
 
     is_finished = all(n.is_colored for n in node_list)
-    return num_steps, is_finished
+
+
+    return ([fset for fset, nstep in colorings_done], looping_step) # ordered dict should preserve insert order.
+
+    # return num_steps, is_finished
 
 def exhaustively_test_until_stable():
     adj = [[0,1,0,0,1,0,0,0,0,0,0,0],[1,0,1,0,0,1,0,0,0,0,0,0],[0,1,0,1,0,0,1,0,0,0,0,0],[0,0,1,0,0,0,0,1,0,0,0,0],[1,0,0,0,0,1,0,0,1,0,0,0],[0,1,0,0,1,0,1,0,0,1,0,0],[0,0,1,0,0,1,0,1,0,0,1,0],[0,0,0,1,0,0,1,0,0,0,0,1],[0,0,0,0,1,0,0,0,0,1,0,0],[0,0,0,0,0,1,0,0,1,0,1,0],[0,0,0,0,0,0,1,0,0,1,0,1],[0,0,0,0,0,0,0,1,0,0,1,0]]
@@ -177,8 +207,14 @@ if __name__ == '__main__':
     # graph = make_graph([[0,1,0,0,0,0,0,0,0,0,0],[1,0,1,0,0,0,0,0,0,0,0],[0,1,0,1,0,0,0,0,0,0,0],[0,0,1,0,1,0,0,0,0,0,0],[0,0,0,1,0,1,0,0,0,0,0],[0,0,0,0,1,0,1,0,0,0,0],[0,0,0,0,0,1,0,1,0,0,0],[0,0,0,0,0,0,1,0,1,0,0],[0,0,0,0,0,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0,1,0]],
     #                         colored_nodes=[1,1,1,1,0,0,2,2,2,2,2])
     graph = make_graph([[0,1,1,0],[1,0,1,1],[1,1,0,1],[0,1,1,0]], colored_nodes=[1,2,1,2])
+    print("\nTest get_labling")
+    print(get_labeling(graph[0]))
+
     print("\nRun force")
     print(run_forcing(graph))
     print("\nAdjacency matrix")
     print_json(*make_adj(graph))
     # exhaustively_test()
+
+
+    #TODO: Instead of generating the labeling every time, you could change the labeling by index using node_id
