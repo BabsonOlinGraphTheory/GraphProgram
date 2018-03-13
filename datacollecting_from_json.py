@@ -13,8 +13,12 @@ class UnfinishedForcingSets(forced_graph.DataCollector):
         self.json = graph_json_obj
         self.output_dir = output_dir
         self.nodes_list = None
+        self.count = 0
 
     def each_run(self, color_set, nodes_list, prop_time, is_finished):
+        self.count += 1
+        if self.count % 10000 == 0:
+            print(self.count)
         if not self.nodes_list:
             self.nodes_list = nodes_list
         if not is_finished:
@@ -113,4 +117,4 @@ if __name__ == '__main__':
             # sample_num
         # forced_graph.one_size_exhaustively_sample
             # set_size
-    stripplot_and_write_unfinished(fname, forced_graph.uniformly_sample)
+    write_unfinished(fname, forced_graph.one_size_exhaustively_sample, sample_func_args={"set_size":22})

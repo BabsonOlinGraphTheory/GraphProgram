@@ -134,9 +134,6 @@ def exhaustively_sample(adj):
         yield colored
 
 def uniformly_sample(adj, sample_num=10000):
-    finished_times = {}
-    un_finished_times = {}
-    proto_graphs = []
     proto_proto_graphs = set()
     num_possibilities = 2**len(adj)
     sample_num = min(sample_num, num_possibilities)
@@ -150,7 +147,24 @@ def uniformly_sample(adj, sample_num=10000):
         yield colored
 
 def one_size_exhaustively_sample(adj, set_size=1):
-    pass
+    assert(set_size <= len(adj))
+    for bitstring in _gen_sets_one_size(set_size, 0, len(adj), 0):
+        colored = []
+        for idx in range(len(adj)):
+            if bitstring & (1<<idx):
+                colored.append(idx)
+        yield colored
+
+def _gen_sets_one_size(num_ones_remaining, curr_idx, graph_len, bitstring):
+    if num_ones_remaining == 0:
+        # print(curr_idx, bitstring)
+        yield bitstring
+    elif (curr_idx < graph_len) and (num_ones_remaining <= graph_len-curr_idx):
+        toggled_bitstring = bitstring + (1<<curr_idx)
+        for bs in _gen_sets_one_size(num_ones_remaining-1, curr_idx+1, graph_len, toggled_bitstring):
+            yield bs
+        for bs in _gen_sets_one_size(num_ones_remaining, curr_idx+1, graph_len, bitstring):
+            yield bs
 
 
 def import_graph(fname):
