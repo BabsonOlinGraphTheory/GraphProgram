@@ -81,6 +81,8 @@ def print_json(adj, labels):
     print(json.dumps(adj))
     print(json.dumps(labels))
 
+propogated_nodes = {} #memoization
+
 def run_forcing(node_list):
     """
     Takes a graph with certain colored nodes, runs the forcing propagation,
@@ -89,9 +91,23 @@ def run_forcing(node_list):
     graph_head = node_list[0]
     num_steps = -1
     colored_count = 1
+    color_hash_stack = []
 
     while colored_count>0:
         num_steps += 1
+
+        color_hash = generate_color_hash(node_list)
+        if (color_hash in propogated_nodes):
+            remaining_steps = propogated_nodes[color_hash]
+
+            for i in range(num_steps):
+                c_set = color_hash_stack.pop()
+                propogated_nodes[c_set] = remaining_steps + i + 1
+
+            return num_steps + remaining_steps, True
+        
+        color_hash_stack.append(color_hash)
+        
         needs_coloring = set()
         visited_nodes = set()
 
@@ -103,7 +119,14 @@ def run_forcing(node_list):
 
         colored_count = len(needs_coloring)
 
+
+
     is_finished = all(n.is_colored for n in node_list)
+    if is_finished:
+        for i in range(num_steps):
+            c_set = color_hash_stack.pop()
+            propogated_nodes[c_set] = i
+    
     return num_steps, is_finished
 
 def test_until_stable(adj, sampling_func, data_collector_obj=None, sample_func_args={}):
@@ -122,15 +145,22 @@ def test_until_stable(adj, sampling_func, data_collector_obj=None, sample_func_a
         data_collector_obj.finish()
     return finished_times, un_finished_times
 
+_curr_datacollector = None
 _curr_adj = [] # this is the world's dumbest solution
 # this is required because the function being passed into Pool must be pickled, and only top level
 # functions can be pickled. It also can't take any additional arguments, so this must be a global
 # variable.
 
+
+def generate_color_hash(graph_nodes):
+    return sum([1<<i for i, node in enumerate(graph_nodes) if node.is_colored])
+
 def _forcing_each_set(c_set):
     graph_nodes = make_graph(_curr_adj, colored_nodes=c_set)
     prop_time, is_finished = run_forcing(graph_nodes)
-    return prop_time, is_finished, c_set, graph_nodes
+    if _curr_datacollector:
+        _curr_datacollector.each_run(c_set, graph_nodes, prop_time, is_finished)
+    return prop_time, is_finished, c_set
 
 def test_until_stable_parallel(adj, sampling_func, data_collector_obj=None, sample_func_args={}):
     finished_times = {}
@@ -138,16 +168,18 @@ def test_until_stable_parallel(adj, sampling_func, data_collector_obj=None, samp
 
     global _curr_adj
     _curr_adj = adj
+    global _curr_datacollector
+    _curr_datacollector = data_collector_obj
+    global propogated_nodes
+    propogated_nodes = set()
 
-    with Pool() as p:
-        for prop_time, is_finished, color_set, graph_nodes in p.imap_unordered(_forcing_each_set, sampling_func(adj, **sample_func_args)):
+    with Pool(40) as p:
+        for prop_time, is_finished, color_set in p.imap_unordered(_forcing_each_set, sampling_func(adj, **sample_func_args)):
             # print(x)
             if is_finished:
                 finished_times[len(color_set)] = finished_times.get(len(color_set), []) + [prop_time]
             else:
                 un_finished_times[len(color_set)] = un_finished_times.get(len(color_set), []) + [prop_time]
-            if data_collector_obj:
-                data_collector_obj.each_run(color_set, graph_nodes, prop_time, is_finished)
 
 
     if data_collector_obj:

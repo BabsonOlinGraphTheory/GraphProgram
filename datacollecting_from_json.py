@@ -4,6 +4,7 @@ import forced_stats
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+# import threading
 
 """ Data Collectors """
 
@@ -14,8 +15,10 @@ class UnfinishedForcingSets(forced_graph.DataCollector):
         self.output_dir = output_dir
         self.nodes_list = None
         self.count = 0
+        # self.lock = threading.Lock()
 
     def each_run(self, color_set, nodes_list, prop_time, is_finished):
+        # with self.lock:
         self.count += 1
         if self.count % 10000 == 0:
             print(self.count)
@@ -51,8 +54,10 @@ class DataFrameCollector(forced_graph.DataCollector):
     def __init__(self):
         self.columns = ['size','time','finished']
         self.df = pd.DataFrame(columns=self.columns)
+        # self.lock = threading.Lock()
 
     def each_run(self, color_set, nodes_list, prop_time, is_finished):
+        # with self.lock:
         current = pd.DataFrame([[len(color_set), prop_time, is_finished]], columns=self.columns)
         self.df = self.df.append(current, ignore_index=True)
 
@@ -90,7 +95,7 @@ def write_unfinished(fname, sample_func, sample_func_args={}):
     graph_obj, matrix = forced_graph.import_graph(fname)
     output_dir = fname.split(".")[0]
     data_collector = UnfinishedForcingSets(graph_obj, output_dir)
-    finished_times, un_finished_times = forced_graph.test_until_stable_parallel(matrix, sample_func, 
+    finished_times, un_finished_times = forced_graph.test_until_stable(matrix, sample_func, 
         data_collector_obj = data_collector, sample_func_args=sample_func_args)
 
 def stripplot_and_write_unfinished(fname, sample_func, sample_func_args={}):
@@ -117,4 +122,4 @@ if __name__ == '__main__':
             # sample_num
         # forced_graph.one_size_exhaustively_sample
             # set_size
-    write_unfinished(fname, forced_graph.one_size_exhaustively_sample, sample_func_args={"set_size":21})
+    write_unfinished(fname, forced_graph.one_size_exhaustively_sample, sample_func_args={"set_size":3})
