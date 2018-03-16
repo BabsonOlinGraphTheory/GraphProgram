@@ -90,7 +90,7 @@ def write_unfinished(fname, sample_func, sample_func_args={}):
     graph_obj, matrix = forced_graph.import_graph(fname)
     output_dir = fname.split(".")[0]
     data_collector = UnfinishedForcingSets(graph_obj, output_dir)
-    finished_times, un_finished_times = forced_graph.test_until_stable(matrix, sample_func, 
+    finished_times, un_finished_times = forced_graph.test_until_stable_parallel(matrix, sample_func, 
         data_collector_obj = data_collector, sample_func_args=sample_func_args)
 
 def stripplot_and_write_unfinished(fname, sample_func, sample_func_args={}):
@@ -117,4 +117,4 @@ if __name__ == '__main__':
             # sample_num
         # forced_graph.one_size_exhaustively_sample
             # set_size
-    write_unfinished(fname, forced_graph.one_size_exhaustively_sample, sample_func_args={"set_size":22})
+    write_unfinished(fname, forced_graph.one_size_exhaustively_sample, sample_func_args={"set_size":21})

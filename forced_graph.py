@@ -1,5 +1,6 @@
 import random
 import json
+from multiprocessing import Pool
 
 class Node:
     def __init__(self):
@@ -106,9 +107,6 @@ def run_forcing(node_list):
     return num_steps, is_finished
 
 def test_until_stable(adj, sampling_func, data_collector_obj=None, sample_func_args={}):
-    """ Problems: sometimes we sample inexhaustively, so we're just using the
-        defualt argument for uniformly_sample...it's fine I swear
-    """
     finished_times = {}
     un_finished_times = {}
     for color_set in sampling_func(adj, **sample_func_args):
@@ -120,6 +118,38 @@ def test_until_stable(adj, sampling_func, data_collector_obj=None, sample_func_a
             un_finished_times[len(color_set)] = un_finished_times.get(len(color_set), []) + [prop_time]
         if data_collector_obj:
             data_collector_obj.each_run(color_set, graph_nodes, prop_time, is_finished)
+    if data_collector_obj:
+        data_collector_obj.finish()
+    return finished_times, un_finished_times
+
+_curr_adj = [] # this is the world's dumbest solution
+# this is required because the function being passed into Pool must be pickled, and only top level
+# functions can be pickled. It also can't take any additional arguments, so this must be a global
+# variable.
+
+def _forcing_each_set(c_set):
+    graph_nodes = make_graph(_curr_adj, colored_nodes=c_set)
+    prop_time, is_finished = run_forcing(graph_nodes)
+    return prop_time, is_finished, c_set, graph_nodes
+
+def test_until_stable_parallel(adj, sampling_func, data_collector_obj=None, sample_func_args={}):
+    finished_times = {}
+    un_finished_times = {}
+
+    global _curr_adj
+    _curr_adj = adj
+
+    with Pool() as p:
+        for prop_time, is_finished, color_set, graph_nodes in p.imap_unordered(_forcing_each_set, sampling_func(adj, **sample_func_args)):
+            # print(x)
+            if is_finished:
+                finished_times[len(color_set)] = finished_times.get(len(color_set), []) + [prop_time]
+            else:
+                un_finished_times[len(color_set)] = un_finished_times.get(len(color_set), []) + [prop_time]
+            if data_collector_obj:
+                data_collector_obj.each_run(color_set, graph_nodes, prop_time, is_finished)
+
+
     if data_collector_obj:
         data_collector_obj.finish()
     return finished_times, un_finished_times
