@@ -111,9 +111,10 @@ def stripplot_and_write_unfinished(fname, sample_func, sample_func_args={}):
 """ MAIN """
 
 if __name__ == '__main__':
-    fname = 'test_graph_3x4.json'
-    if len(sys.argv) > 1:
-        fname = sys.argv[1]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("fname", help="filename of the graph json")
+    parser.add_argument("--setsize", help="forcing set size to exhaustively test", default=10, type=int)
+    args = parser.parse_args()
 
     # REFERENCE (as of 03-11-2018)
     # sample funcs: 
@@ -122,4 +123,4 @@ if __name__ == '__main__':
             # sample_num
         # forced_graph.one_size_exhaustively_sample
             # set_size
-    write_unfinished(fname, forced_graph.one_size_exhaustively_sample, sample_func_args={"set_size":40})
+    write_unfinished(args.fname, forced_graph.one_size_exhaustively_sample, sample_func_args={"set_size":args.setsize})
