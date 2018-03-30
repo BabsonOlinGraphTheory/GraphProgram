@@ -1,10 +1,10 @@
 import sys, os
 import forced_graph
-import forced_stats
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 # import threading
+#import forced_stats
+#import pandas as pd
+#import seaborn as sns
+#import matplotlib.pyplot as plt
 
 """ Data Collectors """
 
@@ -48,7 +48,7 @@ class UnfinishedForcingSets(forced_graph.DataCollector):
             for idx in color_set:
                 self.nodes_list[idx].uncolor()
 
-sns.set(style="white", color_codes=True)
+#sns.set(style="white", color_codes=True)
 
 class DataFrameCollector(forced_graph.DataCollector):
     def __init__(self):
@@ -122,4 +122,4 @@ if __name__ == '__main__':
             # sample_num
         # forced_graph.one_size_exhaustively_sample
             # set_size
-    write_unfinished(fname, forced_graph.one_size_exhaustively_sample, sample_func_args={"set_size":3})
+    write_unfinished(fname, forced_graph.one_size_exhaustively_sample, sample_func_args={"set_size":40})
